@@ -1,0 +1,173 @@
+/*
+Copyright 2019 CANARIE Inc. All Rights Reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, 
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, 
+   this list of conditions and the following disclaimer in the documentation 
+   and/or other materials provided with the distribution.
+
+3. The name of the author may not be used to endorse or promote products 
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY CANARIE Inc. "AS IS" AND 
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "CRSCSerialInterface.h"
+
+
+// Size of buffer for incoming serial characters
+#define BUF_SIZE 80
+
+	
+// --------------------------------------------------------------------------- 
+// Constructor
+CRSCSerialInterface::CRSCSerialInterface (CRSCConfigClass* theConfiguration)
+	: Parser(&InputString) 
+{ 
+	InputString = ""; 
+	TheConfiguration = theConfiguration;
+
+	CommandComplete = false; 
+	
+	// Reserve space for incoming commands to minimize heap fragmentation.
+    InputString.reserve(BUF_SIZE);
+
+}
+	
+// --------------------------------------------------------------------------- 
+// Add a character to the command currently being built up
+void CRSCSerialInterface::Add (char inChar)
+{
+	InputString += inChar;
+	
+	if (inChar == '\n')
+		CommandComplete = true;
+}
+	
+// --------------------------------------------------------------------------- 
+// If we have a complete command, parse and act on it
+void CRSCSerialInterface::Update (void)
+{
+	char newID[BOARD_ID_BUF_LEN];
+	
+	bool okay = true;
+	
+	// A flag which, when set, indicatest that a board ID passed into the A command
+	// was accepted. Compiler doesn't like it when you create local variables inside a
+	// switch statement, so here it is.
+	bool newIDOkay;
+	
+	if (CommandComplete == true)
+	{
+		Parser.Reset();
+		
+		    char command = Parser.GetChar();
+		    command = toupper(command);
+		    
+		    switch (command)
+		    {
+		    	    	// Run
+		    		case 'H':
+		    			Serial.println(F("\nAvailable commands:\n"));
+		    			Serial.println(F("H - Help - display this message"));
+		    			Serial.println(F("A <board ID> - Add a new board ID to your scavenged list"));
+		    			Serial.println(F("G - Get - Display the ID of this board"));
+		    			Serial.println(F("L - List - Display the current list of scavenged board IDs\n"));
+		    			break;
+        
+       
+		    		// Add a Board ID
+		    		case 'A':        
+		    			Parser.GetString(newID, BOARD_ID_BUF_LEN);
+		    			
+		    			// Figure out where the next avaiable space is and add this, along with check digit
+		    			newIDOkay = TheConfiguration->AddNewScavengedID(newID);
+		    			if (newIDOkay)
+		    			{
+		    				Serial.print (F("Addition successful - you now have "));
+		    			    Serial.print (TheConfiguration->GetNumScavengedBoardIDs());
+		    			    Serial.println (F(" scavenged ID(s)\n"));
+		    			}
+		    			else
+		    			{
+		    				Serial.println(F("Oh no!! Scavenged board ID could not be added"));
+		    				Serial.println(F("This could be because:"));
+		    				Serial.println(F(" - It's not a valid board ID - there are check bytes :)"));
+		    				Serial.println(F(" - It's from a board that doesn't match your flash code"));
+		    				Serial.println(F(" - It's the ID of your board"));
+		    				Serial.println(F(" - This board has already been added to your scavenged list"));
+		    			}
+                        break;  
+        
+		    		// Dump the list of scavenged board IDs
+		    		case 'L':        
+		    			// Print scavenged ID list
+		    			TheConfiguration->PrintScavengedBoardList();	
+		    			break;  
+        
+        
+      				// Display our own board ID
+      				case 'G':
+      					Serial.print (F("\n Your board ID is ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F(" \n"));
+      					break;
+        
+      				// Set our board ID. This can only be done when the Board ID in EEPROM has been cleared - ie. 000000. Meant to be used by CANARIE
+      				// staff only so doesn't appear in help.
+      				case 'I':
+      					if (memcmp (TheConfiguration->GetBoardID(), UninitializedID, BOARD_ID_LEN) == 0)
+      					{
+      					    Parser.GetString(newID, BOARD_ID_BUF_LEN);
+      					    okay = TheConfiguration->SetBoardID(newID);
+      					}
+      					else
+      					{
+      						okay = false;
+      					}
+      					break;
+      					
+      				// Reset EEPROM - Intended to be used by CANARIE during production/testing and so does not appear in help. You would typically
+      				// use this command followed by the I command to reload the board ID
+      			case 'R':
+      				
+      				 // Not really getting a board ID, but buffer was there so let's reuse it.
+      				 Parser.GetString(newID, BOARD_ID_BUF_LEN);
+      				 
+      				 if (strcmp(newID, "XNY556") == 0)
+      				 {
+      				 	    Serial.println (F("Resetting EEPROM - Reboot board"));
+      					    TheConfiguration->Initialize(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
+      				 }
+      				 else
+      				 {
+      				 	 Serial.println (F("EEPROM reset failed - invalid security code"));
+      				 }
+      				break;
+      					 
+      				default:
+      					okay = false;
+      					break;
+
+      		    }
+    
+      		    CommandComplete = false;
+      		    InputString = ""; 
+  
+      		    // Turn status to a more human friendly value
+      		    if (okay == false)
+      		    	  Serial.println (F("Invalid command\n"));
+      	}  
+}
