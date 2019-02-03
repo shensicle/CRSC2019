@@ -25,6 +25,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# This script prints 10 board IDs corresponding to each of the fingerprints array elements below
+
 my @chars = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
 
 my @fingerprints = ("0010", "0011", "0100", "0101", "0110", "1001", "1010", "1011", "1011", "1100", "1101");
@@ -124,14 +126,11 @@ sub FlipNibbles
 {
 	my ($theByte) = @_;
 	
-#	print "Flipping nibbles on " . ord($theByte) . " ";
 	my $temp = ord($theByte);
 	my $returnValue = ord($theByte);
 	
 	$temp = ($temp * 16) & 0xf0; $returnValue = int($returnValue / 16);
-#	print "temp is now " . $temp . " and return is " . $returnValue;
 	
 	$returnValue = $returnValue + $temp;
-#print "gives " . $returnValue . "\n";
 	return $returnValue;
 }
