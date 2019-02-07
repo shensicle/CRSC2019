@@ -52,39 +52,39 @@ unsigned char CRSCConfigClass::CalculateChecksum (void)
 // returns to result, is used to calculate check bytes for the board ID
 char CRSCConfigClass::FlipNibbles (char theByte)
 {
-	char temp = theByte;
-	char returnValue = theByte;
+    char temp = theByte;
+    char returnValue = theByte;
 	
-	temp = temp << 4; returnValue = returnValue >> 4;
+    temp = temp << 4; returnValue = returnValue >> 4;
 	
-	returnValue = (returnValue & 0x0f) + temp;    // Deal with sign extension in return value shift
-	return (returnValue);
+    returnValue = (returnValue & 0x0f) + temp;    // Deal with sign extension in return value shift
+    return (returnValue);
 }
 		
 // ----------------------------------------------------------------------
 // Calculate a fingerprint based on the board ID passed in
 unsigned long CRSCConfigClass::CalculateFingerprint (char* theID)
 {   
- 	unsigned long thePrint = 0;
+    unsigned long thePrint = 0;
  	
-	for (int i = 0; i < BOARD_ID_BYTES; i++)
+    for (int i = 0; i < BOARD_ID_BYTES; i++)
     {
-    	thePrint = thePrint << 1;
-    	if (*(theID+i) & 0x01)
-    	{   
-    		thePrint |= 1;
-    	}
-     }
+        thePrint = thePrint << 1;
+        if (*(theID+i) & 0x01)
+        {   
+            thePrint |= 1;
+        }
+    }
     	
-     return (thePrint);
+    return (thePrint);
 }
 
 // ----------------------------------------------------------------------
 // Constructor - allocate EEPROM space
 CRSCConfigClass::CRSCConfigClass (void)
 {
-	// Add 1 for the checksum
-	EEPROM.begin (sizeof(TheConfiguration)+1);
+    // Add 1 for the checksum
+    EEPROM.begin (sizeof(TheConfiguration)+1);
 }
 		
 
@@ -92,18 +92,18 @@ CRSCConfigClass::CRSCConfigClass (void)
 // Write configuration information to EEPROM, adding a checksum
 void CRSCConfigClass::Write (void)
 {
-	unsigned writeAddr = 0;
+    unsigned writeAddr = 0;
 	
-	unsigned char checksum = CalculateChecksum ();
+    unsigned char checksum = CalculateChecksum ();
 	
-	// Write the data
-	EEPROM.put (writeAddr, TheConfiguration);
+    // Write the data
+    EEPROM.put (writeAddr, TheConfiguration);
 	
-	// Write the checksum
-	writeAddr += sizeof (TheConfiguration);
-	EEPROM.put (writeAddr, checksum);
+    // Write the checksum
+    writeAddr += sizeof (TheConfiguration);
+    EEPROM.put (writeAddr, checksum);
 	
-	EEPROM.commit();
+    EEPROM.commit();
 }
 		
 
@@ -112,28 +112,27 @@ void CRSCConfigClass::Write (void)
 // Returns true if configuration is valid and false otherwise
 bool CRSCConfigClass::Read(void)
 {
-	bool returnValue = true;
-	unsigned readAddr = 0;
+    bool returnValue = true;
+    unsigned readAddr = 0;
 
-	// Zero out configuration structure. Helps to null-terminate strings
-	memset (&TheConfiguration, 0, sizeof (TheConfiguration));
+    // Zero out configuration structure. Helps to null-terminate strings
+    memset (&TheConfiguration, 0, sizeof (TheConfiguration));
 	
-	// Read the data
-	EEPROM.get (readAddr, TheConfiguration);
+    // Read the data
+    EEPROM.get (readAddr, TheConfiguration);
 	
-	// Calculate the checksum of this data
-	unsigned char checksum  = CalculateChecksum ();
+    // Calculate the checksum of this data
+    unsigned char checksum  = CalculateChecksum ();
 	
-	// Read the stored checksum
-	readAddr += sizeof (config_t);
-	unsigned char storedChecksum;
-	EEPROM.get (readAddr, storedChecksum);
-	
+    // Read the stored checksum
+    readAddr += sizeof (config_t);
+    unsigned char storedChecksum;
+    EEPROM.get (readAddr, storedChecksum);
 
-	if (checksum != storedChecksum)
-		returnValue = false;
+    if (checksum != storedChecksum)
+        returnValue = false;
 	
-	return (returnValue);
+    return (returnValue);
 }
 
 // ----------------------------------------------------------------------
@@ -142,15 +141,14 @@ bool CRSCConfigClass::Read(void)
 // if something goes wrong.
 bool CRSCConfigClass::Load (void)
 {
+    // Read our configuration from EEPROM
+    bool returnValue = Read();
 	
-	// Read our configuration from EEPROM
-	bool returnValue = Read();
+    // If all is okay, calculate our fingerprint
+    if (returnValue == true)
+        Fingerprint = CalculateFingerprint(TheConfiguration.MyBoardID);
 	
-	// If all is okay, calculate our fingerprint
-	if (returnValue == true)
-		Fingerprint = CalculateFingerprint(TheConfiguration.MyBoardID);
-	
-	return (returnValue);
+    return (returnValue);
 }
 
 // ----------------------------------------------------------------------
@@ -159,15 +157,14 @@ bool CRSCConfigClass::Load (void)
 // Return value is true if theIndex is valid and false otherwise
 void CRSCConfigClass::PrintScavengedBoardList(void)
 {
-	Serial.print (F("You have ")); Serial.print ((int)TheConfiguration.NumScavengedBoards);
-	Serial.println (F(" scavenged ID(s)\n"));
+    Serial.print (F("You have ")); Serial.print ((int)TheConfiguration.NumScavengedBoards);
+    Serial.println (F(" scavenged ID(s)\n"));
 	
-	for (int i = 0; i < TheConfiguration.NumScavengedBoards; i++)
-	{
-		Serial.println (TheConfiguration.ScavengedBoardList[i]);
-	}
-	Serial.println();
-	
+    for (int i = 0; i < TheConfiguration.NumScavengedBoards; i++)
+    {
+        Serial.println (TheConfiguration.ScavengedBoardList[i]);
+    }
+    Serial.println();
 }
 		
 // ----------------------------------------------------------------------
@@ -181,31 +178,31 @@ void CRSCConfigClass::PrintScavengedBoardList(void)
 
 bool CRSCConfigClass::AddNewScavengedID(char* theID)
 {
-	bool returnValue = false;
+    bool returnValue = false;
 
-	// If the list is full ...
-	if (TheConfiguration.NumScavengedBoards < SCAVENGED_BOARD_LIST_LEN)
-	{
-		// List not full. Is this a valid board ID?
-	    if (IsValidBoardID (theID) == true)
-	    {
-	    	// For the more creative among us, make sure it's not our Board ID
-	    	if (memcmp(&TheConfiguration.MyBoardID, theID, BOARD_ID_BUF_LEN) != 0)
+    // If the list is full ...
+    if (TheConfiguration.NumScavengedBoards < SCAVENGED_BOARD_LIST_LEN)
+    {
+        // List not full. Is this a valid board ID?
+        if (IsValidBoardID (theID) == true)
+        {
+            // For the more creative among us, make sure it's not our Board ID
+            if (memcmp(&TheConfiguration.MyBoardID, theID, BOARD_ID_BUF_LEN) != 0)
 	    	{
-	    		// Valid board ID. Does it match our fingerprint?
-	    		if (HasSameFingerprint(theID))
-	    		{
-	    			// Matches our fingerprint. Make sure it's not already on our list
-	    			returnValue = true;
-	    			int i = 0;
-	    			while ((i < (int)TheConfiguration.NumScavengedBoards) && (returnValue == true))
-	    			{
-	    				if (strcmp(TheConfiguration.ScavengedBoardList[i], theID) == 0)
-	    					returnValue = false;
-	    				else
-	    					i++;
-	    			}
-	    		}
+	    	    // Valid board ID. Does it match our fingerprint?
+	    	    if (HasSameFingerprint(theID))
+	    	    {
+	    	        // Matches our fingerprint. Make sure it's not already on our list
+	    	        returnValue = true;
+	    	        int i = 0;
+	    	        while ((i < (int)TheConfiguration.NumScavengedBoards) && (returnValue == true))
+	    	        {
+	    	            if (strcmp(TheConfiguration.ScavengedBoardList[i], theID) == 0)
+	    	                returnValue = false;
+	    	            else
+	    	                i++;
+	    	        }
+	    	    }
 	    	}
 	    }
 	}
@@ -213,13 +210,12 @@ bool CRSCConfigClass::AddNewScavengedID(char* theID)
 	// If we get here and returnValue is true, the board ID is new and valid, so add it
 	if (returnValue == true)
 	{
+	    // Save new ID
+	    memcpy (TheConfiguration.ScavengedBoardList[TheConfiguration.NumScavengedBoards], theID, BOARD_ID_BUF_LEN);
+	    TheConfiguration.NumScavengedBoards++;
 	
-		// Save new ID
-		memcpy (TheConfiguration.ScavengedBoardList[TheConfiguration.NumScavengedBoards], theID, BOARD_ID_BUF_LEN);
-		TheConfiguration.NumScavengedBoards++;
-	
-		// And update the configuration in EEPROM
-		Write();
+	    // And update the configuration in EEPROM
+	    Write();
 	}
 	return (returnValue);
 }
@@ -232,25 +228,24 @@ void CRSCConfigClass::CalculateCheckBytes (char* theID, char* checkBytes)
     // String representation of check bytes
     char checkString[BOARD_ID_CHECK_BYTES+1];   // +1 for null terminator
 	
-	// Storage for the sum of the mangled ID bytes
-	unsigned short mangledSum = 0;
+    // Storage for the sum of the mangled ID bytes
+    unsigned short mangledSum = 0;
 	
-	// I just made this algorithm up. First, flip the nibbles in each of the ID bytes
-	// and add the bytes up
-	for (int i = 0; i < BOARD_ID_BYTES; i++)
-	{
-		mangledSum += FlipNibbles(theID[i]);
-	}
+    // I just made this algorithm up. First, flip the nibbles in each of the ID bytes
+    // and add the bytes up
+    for (int i = 0; i < BOARD_ID_BYTES; i++)
+    {
+        mangledSum += FlipNibbles(theID[i]);
+    }
 	
-	// Then clamp the result to be between [0 .. 99]
-	mangledSum = mangledSum % 100;
+    // Then clamp the result to be between [0 .. 99]
+    mangledSum = mangledSum % 100;
 	
-	// Convert to a string
-	sprintf (checkString, "%02d", mangledSum);
+    // Convert to a string
+    sprintf (checkString, "%02d", mangledSum);
 	
-	// And save the result
-	memcpy (checkBytes, checkString, BOARD_ID_CHECK_BYTES);
-
+    // And save the result
+    memcpy (checkBytes, checkString, BOARD_ID_CHECK_BYTES);
 }
  
 // ------------------------------------------------------------------------------
@@ -258,23 +253,22 @@ void CRSCConfigClass::CalculateCheckBytes (char* theID, char* checkBytes)
 // contains a valid board ID, including the check digits
 bool CRSCConfigClass::IsValidBoardID(char* theID)
 {
-	char checkBytes[BOARD_ID_CHECK_BYTES];
+    char checkBytes[BOARD_ID_CHECK_BYTES];
 	
-	bool returnValue = false;
+    bool returnValue = false;
 
-	// If the ID is the correct length ...
-	if (strlen(theID) == (BOARD_ID_LEN))
-	{
-		CalculateCheckBytes(theID, checkBytes);
+    // If the ID is the correct length ...
+    if (strlen(theID) == (BOARD_ID_LEN))
+    {
+        CalculateCheckBytes(theID, checkBytes);
 		
-		if (memcmp (checkBytes, theID + BOARD_ID_BYTES, BOARD_ID_CHECK_BYTES) == 0)
-		{
-			returnValue = true;
-		}
-	}
+        if (memcmp (checkBytes, theID + BOARD_ID_BYTES, BOARD_ID_CHECK_BYTES) == 0)
+        {
+            returnValue = true;
+        }
+    }
 	
-	return (returnValue);
-		
+    return (returnValue);	
 }
 	    
 // ------------------------------------------------------------------------------
@@ -284,23 +278,23 @@ bool CRSCConfigClass::IsValidBoardID(char* theID)
 bool CRSCConfigClass::HasSameFingerprint (char* idString)
 {
 	
-	bool returnValue = false;
+    bool returnValue = false;
 	
-	unsigned long newFingerprint = 0;
+    unsigned long newFingerprint = 0;
 	
     // First, make sure the ID passed in is valid
     if (IsValidBoardID(idString))
     {
-    	for (int i = 0; i < BOARD_ID_BYTES; i++)
-    	{
-    		newFingerprint = newFingerprint << 1;
+        for (int i = 0; i < BOARD_ID_BYTES; i++)
+        {
+            newFingerprint = newFingerprint << 1;
 
-    		if (*(idString+i) & 0x01)
-    			newFingerprint |= 1;
+            if (*(idString+i) & 0x01)
+                newFingerprint |= 1;
     		
-    	}
-    	if (newFingerprint == Fingerprint)
-    		returnValue = true;
+        }
+        if (newFingerprint == Fingerprint)
+            returnValue = true;
     }
 	
     return (returnValue);
@@ -313,21 +307,21 @@ bool CRSCConfigClass::HasSameFingerprint (char* idString)
 // it's setup.
 void CRSCConfigClass::Initialize (char* theWifiSSID, char* theWifiPassword, char* theIFTTTKey)
 {
-	memcpy (&TheConfiguration.WifiSSID, theWifiSSID, WIFI_SSID_LEN);
-	memcpy (&TheConfiguration.WifiPassword, theWifiPassword, WIFI_PASSWORD_LEN);
-	memcpy (&TheConfiguration.IFTTTKey, theIFTTTKey, IFTTT_KEY_LEN);
+    memcpy (&TheConfiguration.WifiSSID, theWifiSSID, WIFI_SSID_LEN);
+    memcpy (&TheConfiguration.WifiPassword, theWifiPassword, WIFI_PASSWORD_LEN);
+    memcpy (&TheConfiguration.IFTTTKey, theIFTTTKey, IFTTT_KEY_LEN);
 	
-	// Clear the board configuration for now
-	memset (TheConfiguration.MyBoardID, 0, BOARD_ID_BUF_LEN);
+    // Clear the board configuration for now
+    memset (TheConfiguration.MyBoardID, 0, BOARD_ID_BUF_LEN);
 	
-	TheConfiguration.NumScavengedBoards = 0;
-	for (int i = 0; i < SCAVENGED_BOARD_LIST_LEN; i++)
-	{
-		memset (TheConfiguration.ScavengedBoardList[i], 0, BOARD_ID_BUF_LEN);
-	}
+    TheConfiguration.NumScavengedBoards = 0;
+    for (int i = 0; i < SCAVENGED_BOARD_LIST_LEN; i++)
+    {
+        memset (TheConfiguration.ScavengedBoardList[i], 0, BOARD_ID_BUF_LEN);
+    }
 	
-	// And save
-	Write();
+    // And save
+    Write();
 }
 
 // ------------------------------------------------------------------------------
@@ -335,13 +329,13 @@ void CRSCConfigClass::Initialize (char* theWifiSSID, char* theWifiPassword, char
 // when board is being configured.
 bool CRSCConfigClass::SetBoardID(char* newID)
 {
-	bool returnValue = false;
+    bool returnValue = false;
 	
-	if (IsValidBoardID (newID))
-	{
-		memcpy (TheConfiguration.MyBoardID, newID, BOARD_ID_BUF_LEN);
-		Write();
-		returnValue = true;
-	}
-	return (returnValue);
+    if (IsValidBoardID (newID))
+    {
+        memcpy (TheConfiguration.MyBoardID, newID, BOARD_ID_BUF_LEN);
+        Write();
+        returnValue = true;
+    }
+    return (returnValue);
 }

@@ -34,87 +34,85 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class CRSCConfigClass
 {
-	private:
-		// The buffer that stores our configuration, as layed out in EEPROM
-		config_t TheConfiguration;
+    private:
+        // The buffer that stores our configuration, as layed out in EEPROM
+        config_t TheConfiguration;
 		
-		// Return the one's complement checksum of the configuration structure
-		unsigned char CalculateChecksum (void);
+        // Return the one's complement checksum of the configuration structure
+        unsigned char CalculateChecksum (void);
 		
-		// This method, which flips the nibbles in the passed-in char and
-		// returns to result, is used to calculate check bytes for the board ID
-		char FlipNibbles (char theByte);
+        // This method, which flips the nibbles in the passed-in char and
+        // returns to result, is used to calculate check bytes for the board ID
+        char FlipNibbles (char theByte);
 		
-		// Calculate a fingerprint based in the ID string passed in
-		unsigned long CalculateFingerprint (char* theID);
+        // Calculate a fingerprint based in the ID string passed in
+        unsigned long CalculateFingerprint (char* theID);
 	
-	protected:
-		// Write configuration information to EEPROM, adding a checksum
-		void Write (void);
+    protected:
+        // Write configuration information to EEPROM, adding a checksum
+        void Write (void);
 		
-		// Read configuration information from EEPROM and validate the checksum
-		// Returns true if configuration is valid and false otherwise
-		bool Read(void);
+        // Read configuration information from EEPROM and validate the checksum
+        // Returns true if configuration is valid and false otherwise
+        bool Read(void);
 		
-   	    // A fingerprint for the ID of this board. All IDs with the same flash sequence have the
-  	    // same fingerpring
-  	    unsigned long Fingerprint;
+        // A fingerprint for the ID of this board. All IDs with the same flash sequence have the
+        // same fingerpring
+        unsigned long Fingerprint;
   	  
-  	    // Calculate the check bytes of a board ID
- // 	    void CalculateCheckBytes (char* theID, char* checkBytes);
+        // Calculate the check bytes of a board ID
+        void CalculateCheckBytes (char* theID, char* checkBytes);
   	  
-  	    // Returns a value which, when set, indicates that the passed in string
+        // Returns a value which, when set, indicates that the passed in string
   	    // contains a valid board ID, including the check digits
   	    bool IsValidBoardID(char* theID);  
 	
 	
-	public:
-  	    // Calculate the check bytes of a board ID
-  	    void CalculateCheckBytes (char* theID, char* checkBytes);
-  	    
- 		// Constructor - allocate EEPROM space
-		CRSCConfigClass (void);
+  	public:
+ 	    
+  	    // Constructor - allocate EEPROM space
+  	    CRSCConfigClass (void);
 				
-		// Return the current number of scavenged board IDs
-		int GetNumScavengedBoardIDs(void)
-		  { return ((int)TheConfiguration.NumScavengedBoards); }
+  	    // Return the current number of scavenged board IDs
+  	    int GetNumScavengedBoardIDs(void)
+  	       { return ((int)TheConfiguration.NumScavengedBoards); }
 		  
-		// Return our fingerprint
-		unsigned long GetFingerprint (void)
-		  { return (Fingerprint); }
+  	    // Return our fingerprint
+  	    unsigned long GetFingerprint (void)
+  	       { return (Fingerprint); }
 		
-		// Return a string containing the specified scavenged board ID, including
-		// the check digit. Valid indices go from 0 to GetNumScavengedBoardIDs() - 1.
-		// Return value is true if theIndex is valid and false otherwise
-		void PrintScavengedBoardList(void);
+  	    // Return a string containing the specified scavenged board ID, including
+  	    // the check digit. Valid indices go from 0 to GetNumScavengedBoardIDs() - 1.
+  	    // Return value is true if theIndex is valid and false otherwise
+  	    void PrintScavengedBoardList(void);
 		
-		// Save new scavenged board ID. Return 0 on success, -1 on error. A -1 would
-		// be returned if scavenged ID list is already full or if the specified ID
-		// is already on the list.
-		bool AddNewScavengedID(char* theID);
+  	    // Save new scavenged board ID. Return 0 on success, -1 on error. A -1 would
+  	    // be returned if scavenged ID list is already full or if the specified ID
+  	    // is already on the list.
+  	    bool AddNewScavengedID(char* theID);
 		
-		// Return a pointer to our stored WifiSSID
-		char* GetWifiSSID(void)
-		  { return (TheConfiguration.WifiSSID); }
+  	    // Return a pointer to our stored WifiSSID
+  	    char* GetWifiSSID(void)
+  	       { return (TheConfiguration.WifiSSID); }
 		
-		// Return a pointer to our stored Wifi password
-		char* GetWifiPassword(void)
-		  { return (TheConfiguration.WifiPassword); }
+  	    // Return a pointer to our stored Wifi password
+  	    char* GetWifiPassword(void)
+  	       { return (TheConfiguration.WifiPassword); }
 		
-		// Return a pointer to our stored IFTTT key
-		char* GetIFTTTKey(void)
-		  { return (TheConfiguration.IFTTTKey); }
+  	    // Return a pointer to our stored IFTTT key
+  	    char* GetIFTTTKey(void)
+  	       { return (TheConfiguration.IFTTTKey); }
 		
-		// Return a pointer to our own Board ID
-		char* GetBoardID(void)
-		  { return (TheConfiguration.MyBoardID); }
+  	    // Return a pointer to our own Board ID
+  	    char* GetBoardID(void)
+  	       { return (TheConfiguration.MyBoardID); }
 		
-        // Load the configuration from EEPROM. This must be called after the object is
-        // created but before any of the other methods can be used. Returns true on success and false
-        // if something goes wrong.
-        bool Load(void);
+  	    // Load the configuration from EEPROM. This must be called after the object is
+  	    // created but before any of the other methods can be used. Returns true on success and false
+  	    // if something goes wrong.
+  	    bool Load(void);
 		
-        // Returns a value which, when set, indicates that the board ID passed in results in 
+  	    // Returns a value which, when set, indicates that the board ID passed in results in 
         // the same flash code as the ID of this board. Returns false if passed in ID
         // does not match the flash pattern of this board or is invalid.
         bool HasSameFingerprint(char* idString);
@@ -127,9 +125,7 @@ class CRSCConfigClass
         
         // Set the ID of this board. Intended to be called only from the configuration sketch
         // when board is being configured.
-		bool SetBoardID(char* newID);
-
-
+        bool SetBoardID(char* newID);
 };
 
 

@@ -35,28 +35,28 @@ class CRSCLED
 {
 protected:
 	
-	// Structure to store the LED flash sequence associated with this board ID
-	// Delta list-like structure to describe led flash codes
-	typedef struct 
+    // Structure to store the LED flash sequence associated with this board ID
+    // Delta list-like structure to describe led flash codes
+    typedef struct 
 	{
-      // number of milliseconds we should be in this state
-      int StateMilliseconds;
+	    // number of milliseconds we should be in this state
+	    int StateMilliseconds;
 
-      // Number of milliseconds we've been in this state so far
-      int MillisecondsSoFar;
+	    // Number of milliseconds we've been in this state so far
+	    int MillisecondsSoFar;
 
-      // The state of LED for this entry (0= off; 1 = on)
-      unsigned char LEDState;      
-    } FlashEntry_t;
+	    // The state of LED for this entry (0= off; 1 = on)
+	    unsigned char LEDState;      
+	} FlashEntry_t;
 
-  	// Array to store all LED states to implement flashing. Each
-  	// byte in the board ID requires two states (on and off) and there
-  	// is a single state at the end to provide a longer "off" gap between
-  	// flash sequences.
-  	FlashEntry_t FlashList[BOARD_ID_BYTES*2+1];
+	// Array to store all LED states to implement flashing. Each
+	// byte in the board ID requires two states (on and off) and there
+	// is a single state at the end to provide a longer "off" gap between
+	// flash sequences.
+	FlashEntry_t FlashList[BOARD_ID_BYTES*2+1];
   	  
- 	// Index into our FlashList
-  	int FlashListIndex;
+	// Index into our FlashList
+	int FlashListIndex;
   	  
 	// The hardware pin the LED is connected to
 	int TheLEDPin;
@@ -70,13 +70,13 @@ protected:
 	
 public:
 	
-	CRSCLED (int theLEDPin);
+    CRSCLED (int theLEDPin);
 	
-	// Set the fingerprint value
-	void SetFingerprint (unsigned long newPrint);
+    // Set the fingerprint value
+    void SetFingerprint (unsigned long newPrint);
 	
-	// Update the LED. Should be called every UpdateInterval.
-	void Update (void);
+    // Update the LED. Should be called every UpdateInterval.
+    void Update (void);
 };
 
 #endif

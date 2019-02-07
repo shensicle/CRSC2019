@@ -95,12 +95,7 @@ for my $thePrint (@fingerprints)
 sub AddCheckBytes
 {
 	my ($theID) = @_;
-	
-#	$theID .= "01";
-	
-#	return ($theID);
-	
-	
+		
 	#Storage for the sum of the mangled ID bytes
 	my $mangledSum = 0;
 	

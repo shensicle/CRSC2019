@@ -43,7 +43,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BOARD_ID_BYTES 4
 #define BOARD_ID_CHECK_BYTES 2
 #define BOARD_ID_LEN BOARD_ID_BYTES+BOARD_ID_CHECK_BYTES
-#define BOARD_ID_BUF_LEN BOARD_ID_LEN+1     // +1 for the null terminator
+#define BOARD_ID_BUF_LEN BOARD_ID_LEN+1     // Store null terminator - just makes everything easier
 
 // This is what an uninitialized board ID looks like
 const char UninitializedID[BOARD_ID_LEN] = {0,0,0,0,0,0};
@@ -51,10 +51,10 @@ const char UninitializedID[BOARD_ID_LEN] = {0,0,0,0,0,0};
 // Structure to save the configuration for this sketch in EEPROM
 typedef struct
 {
-      char WifiSSID[WIFI_SSID_LEN];     // @@@ FIX CONSTANTS
+      char WifiSSID[WIFI_SSID_LEN];     
       char WifiPassword[WIFI_PASSWORD_LEN];
       char IFTTTKey[IFTTT_KEY_LEN];  
-      char MyBoardID[BOARD_ID_BUF_LEN];  // Store null terminator - just makes everything easier 
+      char MyBoardID[BOARD_ID_BUF_LEN];   
       unsigned char NumScavengedBoards;
       char ScavengedBoardList[SCAVENGED_BOARD_LIST_LEN][BOARD_ID_BUF_LEN];
 

@@ -37,29 +37,33 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class CRSCSerialInterface
 {
 protected:
-	// String to store received characters
-	String InputString;
+    // String to store received characters
+    String InputString;
 	
-	// Parser object
-	CRSCCmdParser Parser;
+    // Parser object
+    CRSCCmdParser Parser;
 	
-	// A flag which, when set, indicates that we have received a complete
-	// command - ie. last character was a line feed
-	bool CommandComplete;
+    // A flag which, when set, indicates that we have received a complete
+    // command - ie. last character was a line feed
+    bool CommandComplete;
 	
-	// Pointer to the configuration object
-	CRSCConfigClass* TheConfiguration;
+    // Pointer to the configuration object
+    CRSCConfigClass* TheConfiguration;
+    
+    // Command line prompt
+//    char ThePrompt[7] = "CRSC> ";
 
 	
 public:
-	// Constructor
-	CRSCSerialInterface (CRSCConfigClass* theConfiguration);
+    // Constructor
+    CRSCSerialInterface (CRSCConfigClass* theConfiguration);
 	
-	// Add a character to the command currently being built up
-	void Add (char inChar);
+    // Add a character to the command currently being built up
+    void Add (char inChar);
 	
-	// If we have a complete command, parse and act on it
-	void Update (void);
+    // If we have a complete command, parse and act on it
+    void Update (void);
+    
 };
 
 #endif

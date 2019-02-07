@@ -62,36 +62,32 @@ class CRSCBoardID
   	  const int LEDGapPulse = 1000;     // milliseconds - off time between sequences
 
   protected:
-  	  // Array to store all LED states to implement flashing. Each
-  	  // byte in the board ID requires two states (on and off) and there
-  	  // is a single state at the end to provide a longer "off" gap between
-  	  // flash sequences.
-  	  FlashEntry_t FlashList[BOARD_ID_BYTES*2+1];
+    // Array to store all LED states to implement flashing. Each
+    // byte in the board ID requires two states (on and off) and there
+    // is a single state at the end to provide a longer "off" gap between
+    // flash sequences.
+ 	FlashEntry_t FlashList[BOARD_ID_BYTES*2+1];
   	  
-  	  // Storage for board ID
-  	  String IDString;
+   // Storage for board ID
+   String IDString;
   	  
-  	  // Index into our FlashList
-  	  int FlashListIndex;
+   // Index into our FlashList
+   int FlashListIndex;
   	  
-  	  // A fingerprint for this ID. All IDs with the same flash sequence have the
-  	  // same fingerpring
-  	  unsigned long Fingerprint;
+   // A fingerprint for this ID. All IDs with the same flash sequence have the
+   // same fingerpring
+   unsigned long Fingerprint;
   	  
-  	  // Calculate the check bytes of a board ID
-  	  void CalculateCheckBytes (CRSCBoardID theID, char* checkBytes);
-  	  
-  	  // Returns a value which, when set, indicates that the passed in string
-  	  // contains a valid board ID, including the check digits
-  	  bool IsValidBoardID(String& theID);  
-  	      
-     // Build up the list of LED flash sequences
-     void BuildFlashSequence(void);
+   // Calculate the check bytes of a board ID
+   void CalculateCheckBytes (CRSCBoardID theID, char* checkBytes);
+  	    	      
+   // Build up the list of LED flash sequences
+   void BuildFlashSequence(void);
 	
   public:
   	  
-  	// Constructor 
-  	CRSCBoardID (void);
+    // Constructor 
+    CRSCBoardID (void);
   	  
     // Set the ID of the of this board. Return true if board ID is valid and false otherwise.
     bool Set(char* boardIDString);
@@ -100,11 +96,6 @@ class CRSCBoardID
     // hasn't been set yet.
     FlashEntry_t* GetNextFlashEntry(void);
     
-    // Returns a value which, when set, indicates that the board ID passed in results in 
-    // the same flash code as the ID of this board. Returns false if passed in ID
-    // does not match the flash pattern of this board or is invalid.
-    bool HasSameFingerprint(char* idString);
-       
 };
 
 #endif

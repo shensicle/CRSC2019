@@ -33,19 +33,19 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //Skip whitespace in the string
 void CRSCCmdParser::SkipWhitespace (void)
 {
-	bool done = false;
-	while ((CurrPos < StringPtr->length()) && (done == false))
-	{
-		if ((StringPtr->charAt (CurrPos) == ' ') ||
-		    (StringPtr->charAt (CurrPos) == '\t'))
-		{
-			CurrPos ++;
-		}
-		else
-		{
-			done = true;
-		}
-	}
+    bool done = false;
+    while ((CurrPos < StringPtr->length()) && (done == false))
+    {
+        if ((StringPtr->charAt (CurrPos) == ' ') ||
+            (StringPtr->charAt (CurrPos) == '\t'))
+        {
+            CurrPos ++;
+        }
+        else
+        {
+            done = true;
+        }
+    }
 }
 	
 	
@@ -53,15 +53,15 @@ void CRSCCmdParser::SkipWhitespace (void)
 // Constructor - pass in string
 CRSCCmdParser::CRSCCmdParser (String* theString)
 {
-	StringPtr = theString;
-	Reset();
+    StringPtr = theString;
+    Reset();
 }
 
 // --------------------------------------------------------------
 // Function to terminate current parsing activities and restart
 void CRSCCmdParser::Reset (void)
 {
-	CurrPos = 0;
+    CurrPos = 0;
 }
 	
 // --------------------------------------------------------------
@@ -69,12 +69,10 @@ void CRSCCmdParser::Reset (void)
 // is more data remaining to parse.
 bool CRSCCmdParser::MoreDataAvailable (void)
 {
-	if (CurrPos < StringPtr->length())
-	{
-		return (true);
-	}
-	else
-		return (false);
+    if (CurrPos < StringPtr->length())
+        return (true);
+    else
+        return (false);
 }
 
 // --------------------------------------------------------------
@@ -83,31 +81,31 @@ bool CRSCCmdParser::MoreDataAvailable (void)
 // the hyphen is skipped and the single letter or number is returned.
 // If a command cannot be found, the null character (0x00) is returned.
 char CRSCCmdParser::GetCommand (void)
-{
-	char returnValue = 0x00;
-	bool done = false;
+{       
+    char returnValue = 0x00;
+    bool done = false;
 	
-	SkipWhitespace ();
+    SkipWhitespace ();
 	
-	while ((CurrPos < StringPtr->length()) && (done == false))
-	{
-		// If we have a hyphen ...
-		if (StringPtr->charAt(CurrPos) == '-')
-		{
-			CurrPos ++;
-			if (CurrPos < StringPtr->length())
-			{
-				returnValue = StringPtr->charAt (CurrPos++);
-			}
-			done = true;
-		}
-		else
-		{
-			done = true;  // didn't see a '-' when we expected one
-		}
-	}
+    while ((CurrPos < StringPtr->length()) && (done == false))
+    {
+        // If we have a hyphen ...
+        if (StringPtr->charAt(CurrPos) == '-')
+        {
+            CurrPos ++;
+            if (CurrPos < StringPtr->length())
+            {
+                returnValue = StringPtr->charAt (CurrPos++);
+            }
+            done = true;
+        }
+        else
+        {
+            done = true;  // didn't see a '-' when we expected one
+        }
+    }
 	
-	return (returnValue);
+    return (returnValue);
 }
 	
 // --------------------------------------------------------------
@@ -116,26 +114,26 @@ char CRSCCmdParser::GetCommand (void)
 // returned.
 unsigned long CRSCCmdParser::GetUnsignedLong (void)
 {
-	unsigned long returnValue = 0;
+    unsigned long returnValue = 0;
 	
-	bool haveDigit = true;
+    bool haveDigit = true;
 	
-	SkipWhitespace ();
+    SkipWhitespace ();
 	
-	while ((CurrPos < StringPtr->length()) && (haveDigit == true))
-	{
-		// If we have a number
-		char nextChar = StringPtr->charAt(CurrPos++);
-		if ((nextChar >= '0') && (nextChar <= '9'))
-		{
-			returnValue = returnValue * 10 + (nextChar - '0');
-		}
-		else
-		{
-			haveDigit = false;
-		}
-	}
-	return (returnValue);
+    while ((CurrPos < StringPtr->length()) && (haveDigit == true))
+    {
+        // If we have a number
+        char nextChar = StringPtr->charAt(CurrPos++);
+        if ((nextChar >= '0') && (nextChar <= '9'))
+        {
+            returnValue = returnValue * 10 + (nextChar - '0');
+        }
+        else
+        {
+            haveDigit = false;
+        }
+    }
+    return (returnValue);
 }
 
 // --------------------------------------------------------------
@@ -143,14 +141,14 @@ unsigned long CRSCCmdParser::GetUnsignedLong (void)
 // characters, return 0x00
 char CRSCCmdParser::GetChar (void)
 {
-	char returnValue = 0x00;
+    char returnValue = 0x00;
 	
-	SkipWhitespace();
+    SkipWhitespace();
 
-	if (CurrPos < StringPtr->length())
-		returnValue = StringPtr->charAt(CurrPos++);
+    if (CurrPos < StringPtr->length())
+        returnValue = StringPtr->charAt(CurrPos++);
 
-	return (returnValue);
+    return (returnValue);
 }
 
 // --------------------------------------------------------------
@@ -158,14 +156,15 @@ char CRSCCmdParser::GetChar (void)
 // no string on the command line.
 void CRSCCmdParser::GetString (char* theResult, unsigned maxLen)
 {
-	SkipWhitespace ();
+    SkipWhitespace ();
 
-	if (StringPtr->length() - CurrPos > maxLen)
+    if (StringPtr->length() - CurrPos > maxLen)
     {
-		theResult[0] = 0x00;
-	}
-	else
-	{
-    	StringPtr->substring(CurrPos, StringPtr->length()).toCharArray(theResult, StringPtr->length()-CurrPos);	
-	}
+        theResult[0] = 0x00;
+    }
+    else
+    {
+        StringPtr->substring(CurrPos, StringPtr->length()).toCharArray(theResult, StringPtr->length()-CurrPos);	
+    }
 }
+

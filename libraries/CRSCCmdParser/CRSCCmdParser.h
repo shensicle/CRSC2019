@@ -35,44 +35,45 @@ class CRSCCmdParser
 {
 protected:
 
-	//Pointer to the string we're parsing
-	String* StringPtr;
+    //Pointer to the string we're parsing
+    String* StringPtr;
 	
-	//Storage for the current position in the string
-	int CurrPos;
+    //Storage for the current position in the string
+    int CurrPos;
 	
-	//Skip whitespace in the string
-	void SkipWhitespace (void);
+    //Skip whitespace in the string
+    void SkipWhitespace (void);
+    
 public:
 
-	// Constructor - pass in string
-	CRSCCmdParser (String* theString);
+    // Constructor - pass in string
+    CRSCCmdParser (String* theString);
 	
-	// Function to terminate current parsing activities and restart
-	void Reset (void);
+    // Function to terminate current parsing activities and restart
+    void Reset (void);
 	
-	// Function returning a flag which, when set, indicates that there
-	// is more data remaining to parse.
-	bool MoreDataAvailable (void);
+    // Function returning a flag which, when set, indicates that there
+    // is more data remaining to parse.
+    bool MoreDataAvailable (void);
 	
-	// Method to return a command. Commands are in the form of a 
-	// hyphen followed by a single letter or number. Whitespace before
-	// the hyphen is skipped and the single letter or number is returned.
-	// If a command cannot be found, the null character (0x00) is returned.
-	char GetCommand (void);
+    // Method to return a command. Commands are in the form of a 
+    // hyphen followed by a single letter or number. Whitespace before
+    // the hyphen is skipped and the single letter or number is returned.
+    // If a command cannot be found, the null character (0x00) is returned.
+    char GetCommand (void);
 	
-	// Method to return an unsigned long value. Any whitespace prior to the
-	// value is skipped. If no suitable value is encountered, a zero is
-	// returned.
-	unsigned long GetUnsignedLong (void);
+    // Method to return an unsigned long value. Any whitespace prior to the
+    // value is skipped. If no suitable value is encountered, a zero is
+    // returned.
+    unsigned long GetUnsignedLong (void);
 
-	// Get a single non-whitespace character. If there are no such
-	// characters, return 0x00
-	char GetChar (void);
+    // Get a single non-whitespace character. If there are no such
+    // characters, return 0x00
+    char GetChar (void);
 	
-	// Return a string of length up to maxLen after skipping over whitespace. Return 0x00 if there is
-	// no string on the command line.
-	void GetString (char* theResult, unsigned maxLen);
+    // Return a string of length up to maxLen after skipping over whitespace. Return 0x00 if there is
+    // no string on the command line.
+    void GetString (char* theResult, unsigned maxLen);
 };
 
 

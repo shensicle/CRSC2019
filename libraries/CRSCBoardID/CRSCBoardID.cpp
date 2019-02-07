@@ -33,34 +33,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Calculate the check bytes of a board ID
 void CRSCBoardID::CalculateCheckBytes (CRSCBoardID theID, String* checkBytes)
 {
-	checkBytes->setCharAt(0, '0');
-	checkBytes->setCharAt(1, '1');
+    checkBytes->setCharAt(0, '0');
+    checkBytes->setCharAt(1, '1');
 }
  
-// ------------------------------------------------------------------------------
-// Returns a value which, when set, indicates that the passed in string
-// contains a valid board ID, including the check digits
-bool CRSCBoardID::IsValidBoardID(String* theID);
-{
-	static String checkBytes;
-	
-	bool returnValue = false;
-	
-	// If the ID is the correct length ...
-	if (theID->length() == (BOARD_ID_BYTES+BOARD_ID_CHECK_BYTES))
-	{
-		CalcuateCheckBytes(theID, &checkBytes);
-		
-		if (checkBytes.compareTo(theID.substring(BOARD_ID_BYTES)) == 0)
-		{
-			returnValue = true;
-		}
-	}
-	
-	return (returnValue);
-		
-}
-	
 // ------------------------------------------------------------------------------
 // Constructor 
 CRSCBoardID::CRSCBoardID (void);
@@ -71,17 +47,17 @@ CRSCBoardID::CRSCBoardID (void);
 // Set the ID of the of this board. Return true if board ID is valid and false otherwise.
 bool CRSCBoardID::Set(String* boardIDString);
 {
-	bool returnValue = IsValidBoardID(boardIDString);
+    bool returnValue = IsValidBoardID(boardIDString);
 	
-	if (returnValue == true)
-	{
-		// Save it. This is our new ID.
-		IDString = *boardIDString;
+    if (returnValue == true)
+    {
+        // Save it. This is our new ID.
+        IDString = *boardIDString;
 			
-		// Rebuild our flash list
-		BuildFlashSequence();	
-	}
-	return (returnValue);
+        // Rebuild our flash list
+        BuildFlashSequence();	
+    }
+    return (returnValue);
 }
     
 // ------------------------------------------------------------------------------
@@ -89,19 +65,18 @@ bool CRSCBoardID::Set(String* boardIDString);
 // hasn't been set yet.
 CRSCBoardID::FlashEntry_t* GetNextFlashEntry(void)
 {
-	// Reset the timing of the current flash entry so it will be ready for next time
-	FlashList[FlashListIndex].MillisecondsSoFar = 0;
+    // Reset the timing of the current flash entry so it will be ready for next time
+    FlashList[FlashListIndex].MillisecondsSoFar = 0;
 
-	// Increment FlashListIndex and wrap if required
-	if (++FlashListIndex >= (BOARD_ID_BYTES*2)+1)
-	{
-		FlashListIndex = 0;
-	}
+    // Increment FlashListIndex and wrap if required
+    if (++FlashListIndex >= (BOARD_ID_BYTES*2)+1)
+    {
+        FlashListIndex = 0;
+    }
 	
+    FlashEntry_t returnValue = FlashList[FlashListIndex]; 
 	
-	FlashEntry_t returnValue = FlashList[FlashListIndex]; 
-	
-	return (returnValue);
+    return (returnValue);
 }
 
     
@@ -109,33 +84,33 @@ CRSCBoardID::FlashEntry_t* GetNextFlashEntry(void)
 // Reset flash entries back to the beginning of the flash sequence
 void CRSCBoardID::BuildFlashSequence(void)
 {
-  // Initiaize fingerprint = we use this to determine whether or not other
-  // flash codes are equivalent to this one.
-  Fingerprint = 0x00;
+    // Initiaize fingerprint = we use this to determine whether or not other
+    // flash codes are equivalent to this one.
+    Fingerprint = 0x00;
 	
-  // Going up by 2 here because each character in the ID string corresponds to 
-  // the LED being on for an amount of time and off for an amount of time
-  for (int i = 0; i < (BOARD_ID_BYTES*2); i+= 2)
-  {
-  	 // This is the on part. A 1 results in a long pulse and a 0 results in
-  	 // a short pulse.
-     if (IDString.charAt(i/2) & 0x01)
-      {
-          FlashList[i].StateMilliseconds = LEDLongPulse;
-          Fingerprint != 1;
-      }
-      else
-      {
-          FlashList[i].StateMilliseconds = LEDShortPulse;
-      }
-      FingerPrint = FingerPrint << 1;
+    // Going up by 2 here because each character in the ID string corresponds to 
+    // the LED being on for an amount of time and off for an amount of time
+    for (int i = 0; i < (BOARD_ID_BYTES*2); i+= 2)
+    {
+        // This is the on part. A 1 results in a long pulse and a 0 results in
+        // a short pulse.
+        if (IDString.charAt(i/2) & 0x01)
+        {
+            FlashList[i].StateMilliseconds = LEDLongPulse;
+            Fingerprint != 1;
+        }
+        else
+        {
+            FlashList[i].StateMilliseconds = LEDShortPulse;
+        }
+        FingerPrint = FingerPrint << 1;
  
-      FlashList[i].MillisecondsSoFar = 0;
-      FlashList[i].LEDState = 1;
+        FlashList[i].MillisecondsSoFar = 0;
+        FlashList[i].LEDState = 1;
 
-      FlashList[i+1].StateMilliseconds = LEDOffPulse;
-      FlashList[i+1].MillisecondsSoFar = 0;
-      FlashList[i+1].LEDState = 0;
+        FlashList[i+1].StateMilliseconds = LEDOffPulse;
+        FlashList[i+1].MillisecondsSoFar = 0;
+        FlashList[i+1].LEDState = 0;
     }
 
     // Last one - the gap between flash sequences
@@ -145,35 +120,5 @@ void CRSCBoardID::BuildFlashSequence(void)
     
     // And reset our flash list index to the last element
     FlashListIndex = (BOARD_ID_BYTES*2);
-
-}
-    
-// ------------------------------------------------------------------------------
-// Returns a value which, when set, indicates that the board ID passed in results in 
-// the same flash code as the ID of this board. Returns false if passed in ID
-// does not match the flash pattern of this board or is invalid.
-bool CRSCBoardID::HasSameFingerprint (String* idString)
-{
-	
-	bool returnValue = false;
-	
-	unsigned long newFingerprint = 0;
-	
-    // First, make sure the ID passed in is valid
-    if (IsValidBoardID(idString))
-    {
-    	for (int i = 0; i < BOARD_ID_BYTES; i++)
-    	{
-    		if (idString->charAt(i) & 0x01)
-    			newFingerprint |= 1;
-    		
-    		newFingerprint = newFingerprint << 1;
-    	}
-    	
-    	if (newFingerPrint == Fingerprint)
-    		returnValue = true;
-    }
-	
-    return (returnValue);
 }
     

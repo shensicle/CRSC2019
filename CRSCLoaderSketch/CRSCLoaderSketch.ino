@@ -80,30 +80,28 @@ bool BoardIDSet = false;
 // -------------------------------------------------------
 void setup() 
 {
+    // Start serial communication for terminal interface
+    Serial.begin(115200); 
 
- // Start serial communication for terminal interface
-  Serial.begin(115200); 
+    // while (! Serial );
 
-  // while (! Serial );
+    Serial.print (F("\nWelcome to CANARIE's CRSC Swag Initialization and Self-test\n\n"));
 
-  Serial.print (F("\nWelcome to CANARIE's CRSC Swag Initialization and Self-test\n\n"));
-
-  // Initialize the Configuration structure (except out board ID which will be provided
-  // by the user below) and write to non-volatile storage
-  TheConfiguration.Initialize (DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
+    // Initialize the Configuration structure (except out board ID which will be provided
+    // by the user below) and write to non-volatile storage
+    TheConfiguration.Initialize (DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
   
   
-  // We can now initialize fields to be sent to IFTTT
-  IFTTTSender.Initialize (TheConfiguration.GetIFTTTKey(), TheConfiguration.GetBoardID()); // have to make last one printable
+    // We can now initialize fields to be sent to IFTTT
+    IFTTTSender.Initialize (TheConfiguration.GetIFTTTKey(), TheConfiguration.GetBoardID()); // have to make last one printable
 
-  // Turn LED on so we know it works
-  pinMode (LED_BUILTIN, OUTPUT);
-  digitalWrite (LED_BUILTIN, 0);
+    // Turn LED on so we know it works
+    pinMode (LED_BUILTIN, OUTPUT);
+    digitalWrite (LED_BUILTIN, 0);
 
-  Serial.print (F("\nMake sure the LED works. It should be on now\n\n"));
-  Serial.print (F("\nEnter board ID: "));
-  Serial.flush();
-
+    Serial.print (F("\nMake sure the LED works. It should be on now\n\n"));
+    Serial.print (F("\nEnter board ID: "));
+    Serial.flush();
 }
 
 // -------------------------------------------------------

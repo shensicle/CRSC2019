@@ -46,8 +46,6 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <WiFiServerSecureAxTLS.h>
 #include <Ticker.h>
 
-
-#include <MessageSender.h>
 #include <IFTTTMessage.h>
 
 #include "CRSCConfig.h"
@@ -76,7 +74,7 @@ Ticker LEDFlasher;
 CRSCConfigClass TheConfiguration;
 
 // Make a serial interface so user can communicate with us from a computer
-static CRSCSerialInterface TheSerialInterface (&TheConfiguration);
+CRSCSerialInterface TheSerialInterface (&TheConfiguration);
 
 
 
@@ -84,7 +82,7 @@ static CRSCSerialInterface TheSerialInterface (&TheConfiguration);
 void setup() 
 {
 
- // Start serial communication for terminal interface
+  // Start serial communication for terminal interface
   Serial.begin(115200); 
 
   // Load our configuration here. If anything goes wrong, turn the
@@ -177,7 +175,6 @@ void ServiceLED (void)
 // This function is automatically called between repetitions of loop()
 void serialEvent() 
 {
-
   while (Serial.available()) 
   {
     // Get the new character

@@ -106,9 +106,7 @@ void CRSCLED::SetFingerprint (unsigned long newPrint)
 // Update the LED. Should be called every UpdateInterval.
 void CRSCLED::Update (void)
 {
-	FlashList[FlashListIndex].MillisecondsSoFar += UpdateInterval;
-//	Serial.print("On item "); Serial.println (FlashListIndex);
-//	Serial.print ("So far "); Serial.print (FlashList[FlashListIndex].MillisecondsSoFar); Serial.print (" out of "); Serial.println(FlashList[FlashListIndex].StateMilliseconds);
+    FlashList[FlashListIndex].MillisecondsSoFar += UpdateInterval;
 
     // If we've been in this state for the appropriate amount of time
     if (FlashList[FlashListIndex].MillisecondsSoFar >= FlashList[FlashListIndex].StateMilliseconds)
@@ -118,13 +116,12 @@ void CRSCLED::Update (void)
 
         // And move to the next state
         FlashListIndex ++;
-         if (FlashListIndex > BOARD_ID_BYTES*2)
+        if (FlashListIndex > BOARD_ID_BYTES*2)
             FlashListIndex = 0;
 
         // Set the LED accordingly
         digitalWrite (TheLEDPin, FlashList[FlashListIndex].LEDState);  
-    }
-      
+    }     
 }
 
 	
