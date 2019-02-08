@@ -29,63 +29,59 @@
 
 my @chars = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
 
-my @fingerprints = ("0010", "0011", "0100", "0101", "0110", "1001", "1010", "1011", "1011", "1100", "1101");
+my @fingerprints = ("0010", "0011", "0100", "0101", "0110", "1001", "1010", "1011", "1100", "1101");
 
+# List of board IDs created so far - used to detect duplicates.
+my @IDList = ();
 
+#index into @chars
 my $charsIndex = 0;
 
 for my $thePrint (@fingerprints)
 {
 	my $boardID = "";
-	my $done;
-	
+
 	print "Board IDs for fingerprint $thePrint\n";
 	
 	# we want 10 Board IDs per fingerprint
 	for (my $k = 0; $k < 10; $k++)
 	{
-        $boardID = "";
- 
-        # for each character in the current fingerprint
-		for (my $j = 0; $j < length($thePrint); $j=$j+1)
-		{ 
-			# Extract the next character
-			my $nextChar = substr ($thePrint, $j,1);
-
-			# Set $comparator to match the lsb of the current fingerprint character
-			my $comparator;
-			
-			if ($nextChar == '0')
-			{
-				$compartor = 0;
-			}
-			else
-			{
-				$comparator = 1;
-			}
-			
-			
-			# Find the next character in @chars whose lsb matches $comparator
-			$done = 0;
-			while ($done == 0)
-			{
-				if ((ord(@chars[$charsIndex]) & 0x01) == $comparator)
-				{
-					$boardID .= @chars[$charsIndex];
-					$done = 1;
-				}
-				$charsIndex++;
-				if ($charsIndex >= scalar(@chars))
-				{
-					$charsIndex = 0;
-				}
-			}
-				
-		}
-         
-
-		$boardID = AddCheckBytes ($boardID);
+	    # Flag which, when set, indicates that the board ID we just generated
+	    # is a duplicate.
+	    my $isOkay = 0;
+	    
+	    # Save our starting index. If this board ID turns out to be a duplicate, we
+	    # will rewind to this point, move to the next element of @chars and try again.
+	    my $startingIndex = $charsIndex;
+	    while ($isOkay == 0)
+	    {
+	        ($boardID,$charsIndex) = CreateBoardID($charsIndex, $thePrint, \@chars);
+	        
+	        # if we have already generated this board ID (due to wrap around)
+	        if ( grep( /^$boardID$/, @IDList ))
+	        {
+	            # print "Duplicate found - " . $boardID . " - Trying again\n";
+	            
+	            # Go to the element of @chars after the one we started with and try again
+	            $charsIndex = $startingIndex + 1;
+	            if ($charsIndex >= scalar(@chars))
+	            {
+	                $charsIndex = 0;
+	            }
+	            $startingIndex = $charsIndex;
+	        }
+	        else 
+	        {
+	            # Not a duplicate, we are done with this board ID
+	            $isOkay = 1;
+	        }
+	    }
+	    
+	    # Save this ID so we can check for duplicates later
+        push @IDList, $boardID;
 		print $boardID . "\n";
+		
+		
 	}
 
 	print "\n---------------------------------------------------\n";
@@ -128,4 +124,54 @@ sub FlipNibbles
 	
 	$returnValue = $returnValue + $temp;
 	return $returnValue;
+}
+
+# -----------------------------------------------------------------
+sub CreateBoardID 
+{
+    my  ($index, $fingerprint, $charRef)  = @_;
+   
+    my $theID = "";
+    
+    my @chars = @{ $charRef };
+        
+    # for each character in the current fingerprint
+	for (my $j = 0; $j < length($fingerprint); $j=$j+1)
+	{ 
+	    # Extract the next character
+	    my $nextChar = substr ($fingerprint, $j,1);
+	    
+	    # Set $comparator to match the lsb of the current fingerprint character
+	    my $comparator;
+			
+	    if ($nextChar == '0')
+	    {
+	        $compartor = 0;
+	    }
+	    else
+	    {
+	        $comparator = 1;
+	    }
+			
+			
+	    # Find the next character in @chars whose lsb matches $comparator
+	    my $done = 0;
+	    while ($done == 0)
+	    {
+	        if ((ord(@chars[$index]) & 0x01) == $comparator)
+	        {
+	            $theID .= @chars[$index];
+	            $done = 1;
+	        }
+	        
+	        $index++;
+	        if ($index >= scalar(@chars))
+	        {
+	            $index = 0;
+	        }
+	    }
+	}		
+		
+    $theID = AddCheckBytes ($theID);
+    return ($theID, $index);
 }
