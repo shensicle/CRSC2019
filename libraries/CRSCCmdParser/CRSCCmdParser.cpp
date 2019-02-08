@@ -36,8 +36,10 @@ void CRSCCmdParser::SkipWhitespace (void)
     bool done = false;
     while ((CurrPos < StringPtr->length()) && (done == false))
     {
-        if ((StringPtr->charAt (CurrPos) == ' ') ||
-            (StringPtr->charAt (CurrPos) == '\t'))
+        // You would think from the Arduino docs that isWhitespace()
+        // would be the correct call here, but it isn't. It only detects
+        // spaces and tabs.
+        if (isSpace(StringPtr->charAt (CurrPos)))
         {
             CurrPos ++;
         }
@@ -75,39 +77,6 @@ bool CRSCCmdParser::MoreDataAvailable (void)
         return (false);
 }
 
-// --------------------------------------------------------------
-// Method to return a command. Commands are in the form of a 
-// hyphen followed by a single letter or number. Whitespace before
-// the hyphen is skipped and the single letter or number is returned.
-// If a command cannot be found, the null character (0x00) is returned.
-char CRSCCmdParser::GetCommand (void)
-{       
-    char returnValue = 0x00;
-    bool done = false;
-	
-    SkipWhitespace ();
-	
-    while ((CurrPos < StringPtr->length()) && (done == false))
-    {
-        // If we have a hyphen ...
-        if (StringPtr->charAt(CurrPos) == '-')
-        {
-            CurrPos ++;
-            if (CurrPos < StringPtr->length())
-            {
-                returnValue = StringPtr->charAt (CurrPos++);
-            }
-            done = true;
-        }
-        else
-        {
-            done = true;  // didn't see a '-' when we expected one
-        }
-    }
-	
-    return (returnValue);
-}
-	
 // --------------------------------------------------------------
 // Method to return an unsigned long value. Any whitespace prior to the
 // value is skipped. If no suitable value is encountered, a zero is
@@ -164,7 +133,37 @@ void CRSCCmdParser::GetString (char* theResult, unsigned maxLen)
     }
     else
     {
-        StringPtr->substring(CurrPos, StringPtr->length()).toCharArray(theResult, StringPtr->length()-CurrPos);	
+        // Use c_str instead of substring() to reduce heap fragmentation caused by 
+        // creating temporary string objects all over the place. MaxLen - 1 because
+        // strings we receive from the serial interface always have a line feed at the end.
+        strncpy (theResult, StringPtr->c_str()+CurrPos, maxLen-1);    
     }
+}
+
+// --------------------------------------------------------------
+// Return a string of length up to maxLen after skipping over leading whitespace and stopping at
+// trailing whitespace. Return 0x00 if there is
+// no string on the command line.
+void CRSCCmdParser::GetStringToWhitespace (char* theResult, unsigned maxLen)
+{
+    SkipWhitespace ();
+    
+    bool done = false;
+    int i = 0;
+        
+    while ((CurrPos < StringPtr->length()) && (i < maxLen) && (done == false))
+    {
+        if (isSpace(StringPtr->charAt(CurrPos)))
+        {
+             // We're done, terminate the result string and leave
+             theResult[i] = 0x00;
+             done = true;
+        }
+        else
+        {
+             // Copy this character into our result string and move to next
+             theResult[i++] = StringPtr->charAt(CurrPos++);
+         }
+     }      
 }
 

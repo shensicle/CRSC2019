@@ -131,6 +131,15 @@ void CRSCSerialInterface::Update (void)
                 {
                     Parser.GetString(newID, BOARD_ID_BUF_LEN);
                     okay = TheConfiguration->SetBoardID(newID);
+                    
+                    if (okay)
+                    {
+                        Serial.print(F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
+                    }
+                    else
+                    {
+                        Serial.println(F("Invalid board ID - try again with the I command\n"));
+                    }
                 }
                 else
                 {
@@ -143,16 +152,28 @@ void CRSCSerialInterface::Update (void)
             case 'R':
       				
                 // Not really getting a board ID, but buffer was there so let's reuse it.
-                Parser.GetString(newID, BOARD_ID_BUF_LEN);
-      				 
+                Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
+                      				 
                 if (strcmp(newID, "XNY556") == 0)
                 {
                     Serial.println (F("Resetting EEPROM - Reboot board"));
                     TheConfiguration->Initialize(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
+                    
+                    // Now, if there's a board ID on the command line as well, set it to be our board ID
+                    Parser.GetString (newID, BOARD_ID_BUF_LEN);
+                    if (TheConfiguration->SetBoardID(newID))
+                    {
+                        Serial.print (F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
+                    }
+                    else
+                    {
+                        Serial.println (F("\nUse the 'I' command to set a new board ID"));
+                    }
+
                 }
                 else
                 {
-                    Serial.println (F("EEPROM reset failed - invalid security code"));
+                    Serial.println (F("\nEEPROM reset failed - invalid security code"));
                 }
                 break;
       					 
