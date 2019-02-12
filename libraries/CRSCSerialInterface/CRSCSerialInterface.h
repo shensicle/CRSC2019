@@ -60,6 +60,9 @@ public:
     // If we have a complete command, parse and act on it
     void Update (void);
     
+    // Display our help text. Public so it can be called directly at startup
+    // or in response the the terminal interface 'H' command.
+    void DisplayHelp (void); 
 };
 
 #endif

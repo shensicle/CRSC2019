@@ -96,6 +96,12 @@ void setup()
     {
         Serial.print(F("*** I'm so sorry. It seems that your board ID is missing. Please get help from CANARIE staff - but only the techies\n\n"));
     }
+    else
+    {
+        // Tell the user what they can do
+        TheSerialInterface.DisplayHelp();
+    }
+    
     // Tell the LED object about our fingerprint so it can flash accordingly
     unsigned long thePrint = TheConfiguration.GetFingerprint();
     TheLED.SetFingerprint (thePrint);
@@ -163,7 +169,11 @@ void loop()
             Serial.println (F("Unable to send message to ifttt\n"));
           }
        }    
-
+       else
+       {
+         Serial.print (F("Error: Wifi failed to connect to ")); Serial.println (TheConfiguration.GetWifiSSID()); Serial.println();
+       }
+       
        // Even if we didn't completely connect, this does some important cleanup    
        WiFi.disconnect();
        TheConfiguration.ClearWifiTestMode();
@@ -271,8 +281,8 @@ bool SendToIFTTT(char* theMessage)
 void PrintLogo (void)
 {
   Serial.print ("\n\n\n");
-  Serial.println(F("________/\\\\\\\\\\\\\\\\\\____/\\\\\\\\\\\\\\\\\\_________/\\\\\\\\\\\\\\\\\\\\\\__________/\\\\\\\\\\\\\\\\\\________"));         
-  Serial.println(F(" _____/\\\\\\////////___/\\\\\\///////\\\\\\_____/\\\\\\/////////\\\\\\_____/\\\\\\////////_________"));       
+  Serial.println(F(" _______/\\\\\\\\\\\\\\\\\\____/\\\\\\\\\\\\\\\\\\_________/\\\\\\\\\\\\\\\\\\\\\\__________/\\\\\\\\\\\\\\\\\\________"));         
+  Serial.println(F("  ____/\\\\\\////////___/\\\\\\///////\\\\\\_____/\\\\\\/////////\\\\\\_____/\\\\\\////////_________"));       
   Serial.println(F("   __/\\\\\\_____________\\/\\\\\\\\\\\\\\\\\\\\\\/______\\////\\\\\\__________/\\\\\\___________________"));      
   Serial.println(F("    _\\/\\\\\\_____________\\/\\\\\\//////\\\\\\_________\\////\\\\\\______\\/\\\\\\___________________"));     
   Serial.println(F("     _\\//\\\\\\____________\\/\\\\\\____\\//\\\\\\___________\\////\\\\\\___\\//\\\\\\__________________"));    

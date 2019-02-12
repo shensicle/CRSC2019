@@ -56,6 +56,17 @@ void CRSCSerialInterface::Add (char inChar)
         CommandComplete = true;
 }
 	
+// ---------------------------------------------------------------------------
+// Display our help text
+void CRSCSerialInterface::DisplayHelp (void)
+{
+    Serial.println(F("Available commands:\n"));
+    Serial.println(F("H - Help - display this message"));
+    Serial.println(F("A <board ID> - Add a new board ID to your scavenged list"));
+    Serial.println(F("G - Get - Display the ID of this board"));
+    Serial.println(F("L - List - Display the current list of scavenged board IDs\n"));
+}
+
 // --------------------------------------------------------------------------- 
 // If we have a complete command, parse and act on it
 void CRSCSerialInterface::Update (void)
@@ -80,11 +91,7 @@ void CRSCSerialInterface::Update (void)
         {
             // Run
             case 'H':
-                Serial.println(F("Available commands:\n"));
-                Serial.println(F("H - Help - display this message"));
-                Serial.println(F("A <board ID> - Add a new board ID to your scavenged list"));
-                Serial.println(F("G - Get - Display the ID of this board"));
-                Serial.println(F("L - List - Display the current list of scavenged board IDs\n"));
+                DisplayHelp();
                 break;
         
        
@@ -195,7 +202,7 @@ void CRSCSerialInterface::Update (void)
                 }
                 else
                 {
-                    Serial.println (F("\nWifi test cancelled - invalid security code"));
+                    Serial.println (F("\nWifi test cancelled - invalid security code\n"));
                 }
             break;
       					 

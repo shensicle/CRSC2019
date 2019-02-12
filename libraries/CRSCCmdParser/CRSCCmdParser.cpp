@@ -136,7 +136,10 @@ void CRSCCmdParser::GetString (char* theResult, unsigned maxLen)
         // Use c_str instead of substring() to reduce heap fragmentation caused by 
         // creating temporary string objects all over the place. MaxLen - 1 because
         // strings we receive from the serial interface always have a line feed at the end.
-        strncpy (theResult, StringPtr->c_str()+CurrPos, maxLen-1);    
+        strncpy (theResult, StringPtr->c_str()+CurrPos, maxLen-1);
+        
+        // This is as good a place to change everything to uppercase as any
+        for(char* c = theResult; *c = toupper(*c); ++c) ;
     }
 }
 
@@ -162,7 +165,7 @@ void CRSCCmdParser::GetStringToWhitespace (char* theResult, unsigned maxLen)
         else
         {
              // Copy this character into our result string and move to next
-             theResult[i++] = StringPtr->charAt(CurrPos++);
+             theResult[i++] = toupper (StringPtr->charAt(CurrPos++));
          }
      }      
 }
