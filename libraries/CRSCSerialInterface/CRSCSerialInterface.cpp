@@ -134,7 +134,8 @@ void CRSCSerialInterface::Update (void)
                     if (okay)
                     {
                         Serial.print(F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
-                        Serial.println (F("Rebooting...\n"));
+                        Serial.println (F("Rebooting...There's a bug where reboots fail first time after flashing board"));
+                        Serial.println (F("If board doesn't reboot, push reset button\n"));
                         ESP.restart();
                     }
                     else
@@ -157,7 +158,7 @@ void CRSCSerialInterface::Update (void)
                       				 
                 if (strcmp(newID, "XNY556") == 0)
                 {
-                    Serial.println (F("Resetting EEPROM - Reboot board"));
+                    Serial.println (F("Resetting EEPROM"));
                     TheConfiguration->Initialize(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
                     
                     // Now, if there's a board ID on the command line as well, set it to be our board ID
@@ -165,7 +166,8 @@ void CRSCSerialInterface::Update (void)
                     if (TheConfiguration->SetBoardID(newID))
                     {
                         Serial.print (F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
-                        Serial.println (F("Rebooting...\n"));
+                        Serial.println (F("Rebooting...There's a bug where reboots fail first time after flashing board"));
+                        Serial.println (F("If board doesn't reboot, push reset button\n"));
                         ESP.restart();
                     }
                     else

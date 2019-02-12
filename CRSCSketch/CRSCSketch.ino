@@ -142,21 +142,19 @@ void loop()
        }        
     }
 
-    // This would only be done during a production test
+    // This would only be done during a production test. As such, there are
+    // no retries.
     if (TheConfiguration.WifiTestRequested())
     {
         Serial.println (F("Wifi test initiated\n"));
        
-       // Connect to Wifi
-       ConnectWifi(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); 
+        WiFi.begin(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); // Connect to WiFi network
 
-       // If wifi connected,
+       // If wifi connected ...
        if (WiFi.status() == WL_CONNECTED)
        {
           // Send an appropriate message to ifttt.com
-          done = SendToIFTTT("Connectivity test");
-
-          if (done == true)
+          if (SendToIFTTT("Connectivity test"))
           {
               Serial.println (F("Wifi test complete - check for email from ifttt\n"));
           }
@@ -164,7 +162,10 @@ void loop()
           {
             Serial.println (F("Unable to send message to ifttt\n"));
           }
-       }        
+       }    
+
+       // Even if we didn't completely connect, this does some important cleanup    
+       WiFi.disconnect();
        TheConfiguration.ClearWifiTestMode();
     }
 
