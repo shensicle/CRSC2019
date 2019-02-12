@@ -47,7 +47,6 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Ticker.h>
 
 
-#include <MessageSender.h>
 #include <IFTTTMessage.h>
 
 #include "CRSCConfig.h"

@@ -85,6 +85,9 @@ CRSCConfigClass::CRSCConfigClass (void)
 {
     // Add 1 for the checksum
     EEPROM.begin (sizeof(TheConfiguration)+1);
+    
+    WifiTestModeActive = false;
+
 }
 		
 

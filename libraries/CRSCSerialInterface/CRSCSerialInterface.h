@@ -50,10 +50,6 @@ protected:
     // Pointer to the configuration object
     CRSCConfigClass* TheConfiguration;
     
-    // Command line prompt
-//    char ThePrompt[7] = "CRSC> ";
-
-	
 public:
     // Constructor
     CRSCSerialInterface (CRSCConfigClass* theConfiguration);

@@ -42,7 +42,6 @@ CRSCSerialInterface::CRSCSerialInterface (CRSCConfigClass* theConfiguration)
     TheConfiguration = theConfiguration;
 
     CommandComplete = false; 
-	
     // Reserve space for incoming commands to minimize heap fragmentation.
     InputString.reserve(BUF_SIZE);
 }
@@ -135,6 +134,8 @@ void CRSCSerialInterface::Update (void)
                     if (okay)
                     {
                         Serial.print(F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
+                        Serial.println (F("Rebooting...\n"));
+                        ESP.restart();
                     }
                     else
                     {
@@ -164,6 +165,8 @@ void CRSCSerialInterface::Update (void)
                     if (TheConfiguration->SetBoardID(newID))
                     {
                         Serial.print (F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
+                        Serial.println (F("Rebooting...\n"));
+                        ESP.restart();
                     }
                     else
                     {
@@ -176,6 +179,23 @@ void CRSCSerialInterface::Update (void)
                     Serial.println (F("\nEEPROM reset failed - invalid security code"));
                 }
                 break;
+                
+            // This is for production purposes only. If you type the "W" command and the security code,
+            // a message will be sent to ifttt.com. This is used to verify connectivity and the Wifi hardware
+            case 'W':
+                
+                // Not really getting a board ID, but buffer was there so let's reuse it.
+                Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
+                      				 
+                if (strcmp(newID, "XNY556") == 0)
+                {
+                    TheConfiguration->RequestWifiTest();
+                }
+                else
+                {
+                    Serial.println (F("\nWifi test cancelled - invalid security code"));
+                }
+            break;
       					 
             default:
                 okay = false;

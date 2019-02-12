@@ -26,35 +26,24 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <WiFiServerSecure.h>
-#include <WiFiClientSecure.h>
-#include <WiFiClientSecureBearSSL.h>
+// Wifi and IP stack for esp8266 host
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
-#include <WiFiUdp.h>
-#include <ESP8266WiFiType.h>
-#include <CertStoreBearSSL.h>
-#include <ESP8266WiFiAP.h>
-#include <WiFiClient.h>
-#include <BearSSLHelpers.h>
-#include <WiFiServer.h>
-#include <ESP8266WiFiScan.h>
-#include <WiFiServerSecureBearSSL.h>
-#include <ESP8266WiFiGeneric.h>
-#include <ESP8266WiFiSTA.h>
-#include <WiFiClientSecureAxTLS.h>
-#include <WiFiServerSecureAxTLS.h>
+//#include <time.h>
+
+// Software timer to control LED flash rate
 #include <Ticker.h>
 
-#include <IFTTTMessage.h>
+// Send a message to ifttt.com, to send an email when this board's scavenger hunt is complete
+#include "IFTTTMessage.h"
 
+// Other functionality specific to the CRSC scavenger hunt
 #include "CRSCConfig.h"
 #include "CRSCSerialInterface.h"
 #include "CRSCLED.h"
 
-
 // -------------------------------------------------------
-IFTTTMessageClass IFTTTSender;   // Communicates with ifttt.com
+
+IFTTTMessageClass IFTTTSender;   // Object to communicate with ifttt.com
 
 // LED stuff - use built-in LED connected to D2
 const int TheLEDPin = LED_BUILTIN;
@@ -76,8 +65,6 @@ CRSCConfigClass TheConfiguration;
 // Make a serial interface so user can communicate with us from a computer
 CRSCSerialInterface TheSerialInterface (&TheConfiguration);
 
-
-
 // -------------------------------------------------------
 void setup() 
 {
@@ -85,8 +72,10 @@ void setup()
   // Start serial communication for terminal interface
   Serial.begin(115200); 
 
+  // Seems to minimize garbage characters on reset
   while (! Serial );
 
+  // Compromise with Marketing department
   PrintLogo();
 
   // Load our configuration here. If anything goes wrong, turn the
@@ -97,10 +86,10 @@ void setup()
   // If the configuration checksum test passed and all stored board IDs are valid ...
   if (okay == true)
   {
-    Serial.print ("\nWelcome to CANARIE's CRSC Scavenger Hunt\n\n");
+    Serial.print (F("\nWelcome to CANARIE's CRSC Scavenger Hunt\n\n"));
 
     // We can now initialize fields to be sent to IFTTT that were in the personality
-    IFTTTSender.Initialize (TheConfiguration.GetIFTTTKey(), TheConfiguration.GetBoardID()); 
+    IFTTTSender.Initialize (TheConfiguration.GetIFTTTKey(), TheConfiguration.GetBoardID(), "CRSCGadget"); 
 
     // If our board ID has not yet been set ...
     if (memcmp (TheConfiguration.GetBoardID(), UninitializedID, BOARD_ID_LEN) == 0) 
@@ -116,8 +105,8 @@ void setup()
   }
   else
   {
-      Serial.print ("\nWell this is embarassing! Your board seems to be corrupted. Please contact CANARIE staff\n\n");
-      digitalWrite (TheLEDPin, 1);    // Turns LED Off
+      Serial.print (F("\nWell, this is embarassing! Your board seems to be corrupted. Please contact CANARIE staff\n\n"));
+      digitalWrite (TheLEDPin, 1);    // Turns LED off. LED is active low.
   }
 
   Serial.flush();
@@ -145,22 +134,41 @@ void loop()
        // Connect to Wifi
        ConnectWifi(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); 
 
-       // If wifi connected, send a message to ifttt.com
+       // If wifi connected,
        if (WiFi.status() == WL_CONNECTED)
        {
-          // And send an appropriate message to ifttt.com
-          IFTTTSender.Initialize(TheConfiguration.GetIFTTTKey(), TheConfiguration.GetBoardID());
-
-          if (IFTTTSender.Send ("Task Complete") == true)
-          {
-              // We have successfully sent our message
-              done = true;
-          }
-       }
-        
+          // Send an appropriate message to ifttt.com
+          done = SendToIFTTT("We have a winner!");
+       }        
     }
 
-    // serialEvent isn't auto-called on 8266 so do it ourselves
+    // This would only be done during a production test
+    if (TheConfiguration.WifiTestRequested())
+    {
+        Serial.println (F("Wifi test initiated\n"));
+       
+       // Connect to Wifi
+       ConnectWifi(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); 
+
+       // If wifi connected,
+       if (WiFi.status() == WL_CONNECTED)
+       {
+          // Send an appropriate message to ifttt.com
+          done = SendToIFTTT("Connectivity test");
+
+          if (done == true)
+          {
+              Serial.println (F("Wifi test complete - check for email from ifttt\n"));
+          }
+          else
+          {
+            Serial.println (F("Unable to send message to ifttt\n"));
+          }
+       }        
+       TheConfiguration.ClearWifiTestMode();
+    }
+
+    // serialEvent isn't auto-called on 8266, for some reason, so do it ourselves
     serialEvent();
     delay (UPDATE_INTERVAL);
 }
@@ -191,35 +199,71 @@ void serialEvent()
 
 // --------------------------------------------------------------------------------------------------
 void ConnectWifi(char* ssid, char* password)  // Tries to connect to the wireless access point with the credentials provided
-{
-    bool timeOut = 0; // Change to 1 if connection times out
-    byte attempts = 0;   // Counter for the number of attempts to connect to wireless AP
-  
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
-  
-    WiFi.begin(ssid, password); // Connect to WiFi network
-
-    while (WiFi.status() != WL_CONNECTED && (timeOut == 0)) // Test to see if we're connected
-    {
-        Serial.print('.');
-        attempts++;
+{  
+    // After a timeout, number of millisecons to wait until trying again
+    static int millisecondsToRetry = UPDATE_INTERVAL;
     
-        if(attempts > 60) 
-            break; // Give up after ~30 seconds
-        else 
-            delay(500);      // Check again after 500ms
-    }
+    byte attempts = 0;   // Counter for the number of attempts to connect to wireless AP
+
+    millisecondsToRetry -= UPDATE_INTERVAL;
+
+    if (millisecondsToRetry <= 0)
+    {
+      Serial.print(F("Connecting to ")); Serial.println(ssid);
   
-    if (WiFi.status() == WL_CONNECTED)  // We're connected
+      WiFi.begin(ssid, password); // Connect to WiFi network
+
+      while (WiFi.status() != WL_CONNECTED) // Test to see if we're connected
+      {
+          Serial.print('.');
+          attempts++;
+    
+          if(attempts > 20) // Give up after 20 tries 
+          {
+            Serial.println (F("\nWifi connection failed. Will try again in 10 seconds."));
+            Serial.println (F("In the mean time, please notify one of the CANARIE staff that you have completed the scavenger hunt\n\n"));
+            millisecondsToRetry = 10000;
+            break; 
+          }
+          else 
+          {
+            delay(500);      // Check again after 500ms
+          }
+      }
+  
+      if (WiFi.status() == WL_CONNECTED)  // We're connected
+      {
+         Serial.println(F("\nWiFi connected ...\n"));
+      }
+      else  // Unable to connect
+      {
+         WiFi.disconnect();
+      }
+   }
+}
+
+// --------------------------------------------------------------------------------------------------------
+// Attempt to send a message to IFTTT and return a flag which, when set, indicates success
+bool SendToIFTTT(char* theMessage)
+{
+  static int millisecondsToRetry = UPDATE_INTERVAL;
+  bool returnValue = false;
+
+  millisecondsToRetry -= UPDATE_INTERVAL;
+
+  if (millisecondsToRetry <= 0)
+  {
+    returnValue = IFTTTSender.Send (theMessage);
+
+    // If this was not successful ...
+    if (returnValue == false)
     {
-        Serial.println("\nWiFi connected");
+      millisecondsToRetry = 10000;
+      Serial.println (F("\nConnection to ifttt.com failed. Will try again in 10 seconds."));
+      Serial.println (F("In the mean time, please notify one of the CANARIE staff that you have completed the scavenger hunt\n\n"));
     }
-    else  // Unable to connect
-    {
-        WiFi.disconnect();
-        Serial.println("\nConnection Timed Out!\r\n");
-    }
+  }  
+  return (returnValue);
 }
 
 // --------------------------------------------------------------------------------------------------------
@@ -233,6 +277,6 @@ void PrintLogo (void)
   Serial.println(F("     _\\//\\\\\\____________\\/\\\\\\____\\//\\\\\\___________\\////\\\\\\___\\//\\\\\\__________________"));    
   Serial.println(F("      __\\///\\\\\\__________\\/\\\\\\_____\\//\\\\\\___/\\\\\\______\\//\\\\\\___\\///\\\\\\________________"));   
   Serial.println(F("       ____\\////\\\\\\\\\\\\\\\\\\_\\/\\\\\\______\\//\\\\\\_\\///\\\\\\\\\\\\\\\\\\\\\\/______\\////\\\\\\\\\\\\\\\\\\_______"));  
-  Serial.println(F("        _______\\/////////__\\///________\\///____\\///////////___________\\/////////______"));                                         
+  Serial.println(F("        _______\\/////////__\\///________\\///____\\///////////___________\\/////////________\n"));                                         
 
 }

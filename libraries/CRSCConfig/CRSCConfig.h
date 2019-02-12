@@ -37,6 +37,11 @@ class CRSCConfigClass
     private:
         // The buffer that stores our configuration, as layed out in EEPROM
         config_t TheConfiguration;
+        
+        // A flag which, when set, indicates that we should test the wifi hardware and 
+        // connectivity by sending a message to ifttt.com. Intended to be used only
+        // for production.
+        bool WifiTestModeActive;
 		
         // Return the one's complement checksum of the configuration structure
         unsigned char CalculateChecksum (void);
@@ -47,7 +52,7 @@ class CRSCConfigClass
 		
         // Calculate a fingerprint based in the ID string passed in
         unsigned long CalculateFingerprint (char* theID);
-	
+        
     protected:
         // Write configuration information to EEPROM, adding a checksum
         void Write (void);
@@ -60,9 +65,6 @@ class CRSCConfigClass
         // same fingerpring
         unsigned long Fingerprint;
   	  
-        // Calculate the check bytes of a board ID
-        void CalculateCheckBytes (char* theID, char* checkBytes);
-  	  
         // Returns a value which, when set, indicates that the passed in string
   	    // contains a valid board ID, including the check digits
   	    bool IsValidBoardID(char* theID);  
@@ -73,6 +75,9 @@ class CRSCConfigClass
   	    // Constructor - allocate EEPROM space
   	    CRSCConfigClass (void);
 				
+        // Calculate the check bytes of a board ID
+        void CalculateCheckBytes (char* theID, char* checkBytes);
+  	  
   	    // Return the current number of scavenged board IDs
   	    int GetNumScavengedBoardIDs(void)
   	       { return ((int)TheConfiguration.NumScavengedBoards); }
@@ -126,6 +131,20 @@ class CRSCConfigClass
         // Set the ID of this board. Intended to be called only from the configuration sketch
         // when board is being configured.
         bool SetBoardID(char* newID);
+        
+        // Request a Wifi test
+        void RequestWifiTest (void)
+        { WifiTestModeActive = true; }
+        
+        // Returns a flag which, when set, indicates that we should test the wifi
+        bool WifiTestRequested (void)
+        { return (WifiTestModeActive); }
+    
+        // Clear the wifi test flag. Should be called after Wifi test has started.
+        void ClearWifiTestMode (void)
+        { WifiTestModeActive = false; };
+	
+
 };
 
 

@@ -28,10 +28,16 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "IFTTTMessage.h"
 
+#define IFTTT_URL "maker.ifttt.com"
+
 // -----------------------------------------------------
 IFTTTMessageClass::IFTTTMessageClass (void)
 
 {
+    // Reserve buffers for our strings
+    PostData.reserve(120);
+    PostString.reserve(200);
+    DeviceID.reserve(10);
 }
 
 // -----------------------------------------------------
@@ -39,13 +45,19 @@ IFTTTMessageClass::IFTTTMessageClass (void)
 // which is typically a unique identifier for this host. This can't be done in
 // constructor as we have to wait for personality to be read from EEPROM. Call
 // this method once before calling Send()
-void IFTTTMessageClass::Initialize (const char* theAPIKey, const char* sensorID)
+void IFTTTMessageClass::Initialize (const char* theAPIKey, const char* deviceID, const char* deviceType)
 
 {
-    SensorID = sensorID;
+    DeviceID = deviceID;
+    PostData   = "";
+    
     PostString =   "POST /trigger/sensor_alert/with/key/";
     PostString += theAPIKey;
-    PostString += " HTTP/1.1\nHost: maker.ifttt.com\nUser-Agent: ShensicleSensor\nConnection: close\nContent-Type: application/json\nContent-Length: ";
+    PostString += " HTTP/1.1\nHost: ";
+    PostString += IFTTT_URL;
+    PostString += "\nUser-Agent: ";
+    PostString += deviceType;
+    PostString += "\nConnection: close\nContent-Type: application/json\nContent-Length: ";
 }
 
 // -----------------------------------------------------
@@ -55,13 +67,13 @@ bool IFTTTMessageClass::Connect (void)
    // Value which, when set, indicates connection to IFTTT server was successful
    bool returnValue = true;
    
-   if(TheClient.connect("maker.ifttt.com",80))  // Test the connection to the server
+   if(TheClient.connect(IFTTT_URL,80))  // Test the connection to the server
    {
-     Serial.println("Connected to ifttt");
+     Serial.print("Connected to "); Serial.println(IFTTT_URL);
    }
    else
    {
-     Serial.println("Failed to connect to ifttt.");
+     Serial.println("Failed to connect to "); Serial.println(IFTTT_URL);
      returnValue = false;
    }
    
@@ -72,21 +84,20 @@ bool IFTTTMessageClass::Connect (void)
 // Send a message. Return value indicates whether or not message was successfully sent
 bool IFTTTMessageClass::Send (String theMessage)
 {
-    
+ 
     if (Connect())
     {
     	// Note that ifttt only supports labels value1, value2, value3
-  	    String postData;
-  	    postData.concat ("{\"value1\":\"");
-   	    postData.concat (SensorID);
-  	    postData.concat ("\",\"value2\":\"");
-  	    postData.concat(theMessage);
-  	    postData.concat("\"}");
+  	    PostData = "{\"value1\":\"";
+   	    PostData.concat (DeviceID);
+  	    PostData.concat ("\",\"value2\":\"");
+  	    PostData.concat(theMessage);
+  	    PostData.concat("\"}");
 
   	    TheClient.print (PostString);          // Connection details
-	    TheClient.println(postData.length());  // length of JSON payload
+	    TheClient.println(PostData.length());  // length of JSON payload
         TheClient.println();
-        TheClient.println(postData);           // JSON payload
+        TheClient.println(PostData);           // JSON payload
     }
 }
 
