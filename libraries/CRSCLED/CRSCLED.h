@@ -30,6 +30,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "CRSCConfigDefs.h"
 
+// LED is active low
+#define LED_OFF 1
+#define LED_ON  0
+
 
 class CRSCLED
 {
@@ -70,13 +74,21 @@ protected:
 	
 public:
 	
-    CRSCLED (int theLEDPin);
+    CRSCLED (int theLEDPin, float updateInterval);
 	
     // Set the fingerprint value
     void SetFingerprint (unsigned long newPrint);
 	
     // Update the LED. Should be called every UpdateInterval.
     void Update (void);
+    
+    // Force the LED On
+    void SetOn(void)
+    {    digitalWrite (TheLEDPin, LED_ON); };
+    
+    // And off
+    void SetOff (void)
+    {    digitalWrite (TheLEDPin, LED_OFF); };
 };
 
 #endif

@@ -43,20 +43,20 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // -------------------------------------------------------
 
+// How often to run out main loop (milliseconds)
+#define UPDATE_INTERVAL    50
+
+
 IFTTTMessageClass IFTTTSender;   // Object to communicate with ifttt.com
 
 // LED stuff - use built-in LED connected to D2
 const int TheLEDPin = LED_BUILTIN;
 
 // Define the object that controls the LED
-CRSCLED TheLED (TheLEDPin);
+CRSCLED TheLED (TheLEDPin, (float)UPDATE_INTERVAL);
 
 // Takes care of running the LED flashing function periodically
 Ticker LEDFlasher;
-
-// How often to run out main loop (milliseconds)
-#define UPDATE_INTERVAL    50
-#define UPDATE_INTERVAL_FP 0.05
 
 // Configuration object to load/store information in EEPROM, including our own Board ID and the other Board IDs we
 // have collected.
@@ -107,12 +107,12 @@ void setup()
     TheLED.SetFingerprint (thePrint);
 
     // Attach the LED update function to the ticker object that periodically calls it
-    LEDFlasher.attach (UPDATE_INTERVAL_FP, ServiceLED);   // 50 milliseconds
+    LEDFlasher.attach ((float)UPDATE_INTERVAL/1000.0, ServiceLED); // time period is in seconds
   }
   else
   {
       Serial.print (F("\nWell, this is embarassing! Your board seems to be corrupted. Please contact CANARIE staff\n\n"));
-      digitalWrite (TheLEDPin, 1);    // Turns LED off. LED is active low.
+      TheLED.SetOff();
   }
 
   Serial.flush();
@@ -135,7 +135,7 @@ void loop()
         LEDFlasher.detach();
 
         // Set LED on as an indication to the user
-        digitalWrite (TheLEDPin, 0);
+        TheLED.SetOn();
 
        // Connect to Wifi
        ConnectWifi(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); 

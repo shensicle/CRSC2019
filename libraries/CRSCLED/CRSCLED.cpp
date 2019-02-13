@@ -32,9 +32,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 const int LEDShortPulse = 100;      // milliseconds
-const int LEDLongPulse  = 500;    // milliseconds
-const int LEDOffPulse   = 500;     // milliseconds - off time betweeen on pulses
-const int LEDGapPulse   = 1500;    // milliseconds - off time between sequences
+const int LEDLongPulse  = 500;      // milliseconds
+const int LEDOffPulse   = 500;      // milliseconds - off time betweeen on pulses
+const int LEDGapPulse   = 1500;     // milliseconds - off time between sequences
 
 
 	
@@ -80,15 +80,15 @@ void CRSCLED::InitializeFlashList (void)
 }
 	
 // -----------------------------------------------------------------------------
-CRSCLED::CRSCLED(int theLEDPin)
+CRSCLED::CRSCLED(int theLEDPin, float updateInterval)
 { 
 	Fingerprint = 0x00; 
-	UpdateInterval = 50;
+	UpdateInterval = updateInterval;
 	TheLEDPin = theLEDPin;
 	
 	// Set up control pin for LED and turn it off
     pinMode (TheLEDPin, OUTPUT);
-    digitalWrite (TheLEDPin, 1);
+    SetOff();
 
 	InitializeFlashList();
 }
