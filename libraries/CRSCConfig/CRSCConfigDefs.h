@@ -62,8 +62,8 @@ typedef struct
 
 // Default values for configuration items
 #define DEFAULT_WIFI_SSID "SSID goes here"
-#define DEFAULT_WIFI_PASSWORD "Password goes here"
-#define DEFAULT_IFTTT_KEY "Key goes here"
+#define DEFAULT_WIFI_PASSWORD "Wifi password goes here"
+#define DEFAULT_IFTTT_KEY "ifttt key goes here"
 
 
 #endif  

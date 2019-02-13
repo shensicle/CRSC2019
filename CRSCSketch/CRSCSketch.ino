@@ -49,6 +49,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 IFTTTMessageClass IFTTTSender;   // Object to communicate with ifttt.com
 
+// Messages to send to ifttt when scavenger hunt has been completed or if we are in test mode
+const char* DoneMsg = "Scavenger hunt is complete!";
+const char* TestMsg = "Connectivity test";
+char* CurrMsg;
+
 // LED stuff - use built-in LED connected to D2
 const int TheLEDPin = LED_BUILTIN;
 
@@ -129,13 +134,25 @@ void loop()
     TheSerialInterface.Update();
 
     // If we now have all the scavenged board ID's we need ...
-    if ((TheConfiguration.GetNumScavengedBoardIDs() == SCAVENGED_BOARD_LIST_LEN) && (done == false))
+    if (((TheConfiguration.GetNumScavengedBoardIDs() == SCAVENGED_BOARD_LIST_LEN) && (done == false)) || TheConfiguration.WifiTestRequested())
     {
-        // Disconnect the LED flasher
-        LEDFlasher.detach();
+        // If we are just testing the wifi
+        if (TheConfiguration.WifiTestRequested() == true)
+        {
 
-        // Set LED on as an indication to the user
-        TheLED.SetOn();
+          CurrMsg = (char*)TestMsg;
+        }
+        else
+        {
+           // This is real. Scavenger hunt has been completed
+           CurrMsg = (char*)DoneMsg;
+           
+          // Disconnect the LED flasher
+          LEDFlasher.detach();
+
+          // Set LED on as an indication to the user
+          TheLED.SetOn();   
+        }
 
        // Connect to Wifi
        ConnectWifi(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); 
@@ -144,40 +161,24 @@ void loop()
        if (WiFi.status() == WL_CONNECTED)
        {
           // Send an appropriate message to ifttt.com
-          done = SendToIFTTT("We have a winner!");
+          done = SendToIFTTT(CurrMsg);
+
+          // If send to ifttt failed ...
+          if (done == false)
+          {
+              Serial.println(F("Unable to send to ifttt - will keep trying"));
+          }
+          else    // send was successful
+          {
+              if (TheConfiguration.WifiTestRequested())
+              {
+                 TheConfiguration.ClearWifiTestMode();
+                 done = false;
+              }
+          }
        }        
     }
 
-    // This would only be done during a production test. As such, there are
-    // no retries.
-    if (TheConfiguration.WifiTestRequested())
-    {
-        Serial.println (F("Wifi test initiated\n"));
-       
-        WiFi.begin(TheConfiguration.GetWifiSSID(), TheConfiguration.GetWifiPassword()); // Connect to WiFi network
-
-       // If wifi connected ...
-       if (WiFi.status() == WL_CONNECTED)
-       {
-          // Send an appropriate message to ifttt.com
-          if (SendToIFTTT("Connectivity test"))
-          {
-              Serial.println (F("Wifi test complete - check for email from ifttt\n"));
-          }
-          else
-          {
-            Serial.println (F("Unable to send message to ifttt\n"));
-          }
-       }    
-       else
-       {
-         Serial.print (F("Error: Wifi failed to connect to ")); Serial.println (TheConfiguration.GetWifiSSID()); Serial.println();
-       }
-       
-       // Even if we didn't completely connect, this does some important cleanup    
-       WiFi.disconnect();
-       TheConfiguration.ClearWifiTestMode();
-    }
 
     // serialEvent isn't auto-called on 8266, for some reason, so do it ourselves
     serialEvent();
