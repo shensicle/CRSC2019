@@ -1,5 +1,5 @@
-#ifndef _IFTTT_MESSAGE_H
-#define _IFTTT_MESSAGE_H
+#ifndef _IFTTTMESSAGE_H
+#define _IFTTTMESSAGE_H
 
 /*
 Copyright 2019 Scott Henwood All Rights Reserved.

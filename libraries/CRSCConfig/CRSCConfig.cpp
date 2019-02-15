@@ -44,7 +44,7 @@ unsigned char CRSCConfigClass::CalculateChecksum (void)
 		returnValue += *configurationBytes++;
 	}
 	
-	return (returnValue);
+	return (0xff - returnValue);
 }
 
 // ----------------------------------------------------------------------

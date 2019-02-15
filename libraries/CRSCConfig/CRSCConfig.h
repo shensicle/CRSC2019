@@ -87,8 +87,8 @@ class CRSCConfigClass
   	       { return (Fingerprint); }
 		
   	    // Return a string containing the specified scavenged board ID, including
-  	    // the check digit. Valid indices go from 0 to GetNumScavengedBoardIDs() - 1.
-  	    // Return value is true if theIndex is valid and false otherwise
+  	    // the check digits. Valid indices go from 0 to GetNumScavengedBoardIDs() - 1.
+  	    // Return value is true if theIndex is valid and false otherwise.
   	    void PrintScavengedBoardList(void);
 		
   	    // Save new scavenged board ID. Return 0 on success, -1 on error. A -1 would
@@ -132,7 +132,7 @@ class CRSCConfigClass
         // when board is being configured.
         bool SetBoardID(char* newID);
         
-        // Request a Wifi test
+        // Request a Wifi test. This is used only in production.
         void RequestWifiTest (void)
         { WifiTestModeActive = true; }
         
@@ -143,8 +143,6 @@ class CRSCConfigClass
         // Clear the wifi test flag. Should be called after Wifi test has started.
         void ClearWifiTestMode (void)
         { WifiTestModeActive = false; };
-	
-
 };
 
 
