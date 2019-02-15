@@ -46,8 +46,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // How often to run out main loop (milliseconds)
 #define UPDATE_INTERVAL    50
 
-
-IFTTTMessageClass IFTTTSender;   // Object to communicate with ifttt.com
+IFTTTMessageClass IFTTTSender (UPDATE_INTERVAL);   // Object to communicate with ifttt.com
 
 // Messages to send to ifttt when scavenger hunt has been completed or if we are in test mode
 const char* DoneMsg = "Scavenger hunt is complete!";
@@ -59,9 +58,6 @@ const int TheLEDPin = LED_BUILTIN;
 
 // Define the object that controls the LED
 CRSCLED TheLED (TheLEDPin, (float)UPDATE_INTERVAL);
-
-// Takes care of running the LED flashing function periodically
-Ticker LEDFlasher;
 
 // Configuration object to load/store information in EEPROM, including our own Board ID and the other Board IDs we
 // have collected.
@@ -80,13 +76,12 @@ void setup()
   // Seems to minimize garbage characters on reset
   while (! Serial );
 
-  // Compromise with Marketing department
+  // Compromise with Marketing department :)
   PrintLogo();
 
   // Load our configuration here. If anything goes wrong, turn the
   // LED off and give up.
   bool okay = TheConfiguration.Load();
-
 
   // If the configuration checksum test passed and all stored board IDs are valid ...
   if (okay == true)
@@ -108,11 +103,7 @@ void setup()
     }
     
     // Tell the LED object about our fingerprint so it can flash accordingly
-    unsigned long thePrint = TheConfiguration.GetFingerprint();
-    TheLED.SetFingerprint (thePrint);
-
-    // Attach the LED update function to the ticker object that periodically calls it
-    LEDFlasher.attach ((float)UPDATE_INTERVAL/1000.0, ServiceLED); // time period is in seconds
+    TheLED.SetFingerprint (TheConfiguration.GetFingerprint());
   }
   else
   {
@@ -139,7 +130,6 @@ void loop()
         // If we are just testing the wifi
         if (TheConfiguration.WifiTestRequested() == true)
         {
-
           CurrMsg = (char*)TestMsg;
         }
         else
@@ -147,9 +137,6 @@ void loop()
            // This is real. Scavenger hunt has been completed
            CurrMsg = (char*)DoneMsg;
            
-          // Disconnect the LED flasher
-          LEDFlasher.detach();
-
           // Set LED on as an indication to the user
           TheLED.SetOn();   
         }
@@ -161,7 +148,7 @@ void loop()
        if (WiFi.status() == WL_CONNECTED)
        {
           // Send an appropriate message to ifttt.com
-          done = SendToIFTTT(CurrMsg);
+          done = IFTTTSender.SendMessage(CurrMsg);
 
           // If send to ifttt failed ...
           if (done == false)
@@ -185,18 +172,8 @@ void loop()
     delay (UPDATE_INTERVAL);
 }
 
-
 // -------------------------------------------------------
-// Flash the LED either a short pulse or a long pulse, depending
-// on the next byte in the board ID
-void ServiceLED (void)
-{ 
-   // LED object does the work
-   TheLED.Update();      
-}
-
-// -------------------------------------------------------
-// This function is automatically called between repetitions of loop()
+// This function is called during each repetition of loop()
 void serialEvent() 
 {
   while (Serial.available()) 
@@ -254,31 +231,9 @@ void ConnectWifi(char* ssid, char* password)  // Tries to connect to the wireles
    }
 }
 
-// --------------------------------------------------------------------------------------------------------
-// Attempt to send a message to IFTTT and return a flag which, when set, indicates success
-bool SendToIFTTT(char* theMessage)
-{
-  static int millisecondsToRetry = UPDATE_INTERVAL;
-  bool returnValue = false;
-
-  millisecondsToRetry -= UPDATE_INTERVAL;
-
-  if (millisecondsToRetry <= 0)
-  {
-    returnValue = IFTTTSender.Send (theMessage);
-
-    // If this was not successful ...
-    if (returnValue == false)
-    {
-      millisecondsToRetry = 10000;
-      Serial.println (F("\nConnection to ifttt.com failed. Will try again in 10 seconds."));
-      Serial.println (F("In the mean time, please notify one of the CANARIE staff that you have completed the scavenger hunt\n\n"));
-    }
-  }  
-  return (returnValue);
-}
 
 // --------------------------------------------------------------------------------------------------------
+/*
 void PrintLogo (void)
 {
   Serial.print ("\n\n\n");
@@ -291,4 +246,52 @@ void PrintLogo (void)
   Serial.println(F("       ____\\////\\\\\\\\\\\\\\\\\\_\\/\\\\\\______\\//\\\\\\_\\///\\\\\\\\\\\\\\\\\\\\\\/______\\////\\\\\\\\\\\\\\\\\\_______"));  
   Serial.println(F("        _______\\/////////__\\///________\\///____\\///////////___________\\/////////________\n"));                                         
 
+}
+*/
+void PrintLogo(void)
+{
+  Serial.print ("\n\n\n");
+  Serial.println(F("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@@@&(/#@@@@@@@@@@@@@@@@@@@@@@@@@(/(@@@@@@@@@@@@@@@@@@@@@@@@@@%//%@@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@.       ,@@@@@@@@@@@@@@@@@@@.       *@@@@@@@@@@@@@@@@@@@@#        &@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@&.  &%%%(  ,@@@@@@@@@@@@@@@@@.  ,,,,,   @@@@@@@@@@@@@@@@@@%  *((((.  &@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@&  .%%%%%. .@@@@@@@@@@@@@@@@@   ,,,,,   @@@@@@@@@@@@@@@@@@/  (((((*  &@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@/           .%%%%%.                      ,,,,,                        (((((*          &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/  ,,,,,,,,,,,,,,,,,,,,,,,,,,,  *(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/  ,,,,,,,,,,,,,,,,,,,,,,,,,,,  ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/  ,,,,,,,,,,,,,,,,,,,,,,,,,,,  ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/       ,,,,,,,,,,,,,,,,,       ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%%%%%%%,  ,,,,,,,,,,,,,,,  .(((((((((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   ,,,,,,,,,,,,,   ((((((((((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%%%%%%&(  .,,,,,,,,,,,,,.  *(((((((((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/       ,,,,,,,,,,,,,,,,,       ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/  ,,,,,,,,,,,,,,,,,,,,,,,,,,,  ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/  ,,,,,,,,,,,,,,,,,,,,,,,,,,,  ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  (%%%%%%%%%%%%%%%%%%%%%%%/  ,,,,,,,,,,,,,,,,,,,,,,,,,,,  ,(((((((((((((((((((((((*  &@@@@@@@"));
+  Serial.println(F("@@@@@#          ,&%%%(                          .,,,,.                     (((((.          &@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@&%%%(   ,&%(  *%%%%%%%%@@%,,,,,,,,,,  .,,.   .,,,,/@@&((((((((,  (((.   /(((%@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@&%%%%#   /(  *%%%%%%%%&@@*,,,,,,,,,  ..   .,,,,,,&@@(((((((((,  (*   /((((&@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@&%%%%#     *%%%%%%%%%@@#,,,,,,,,,     .,,,,,,,*@@&(((((((((,     /((((%@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@&%%%%%#.../%%%%%%%%%&@@*,,,,,,,,   .,,,,,,,,,%@@((((((((((*.../(((((&@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@&%%%%%&&%%%%%%%%%%%@@#,,,,,,,,,,,,,,,,,,,,*@@#((((((((((((((((((#@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@@&%.      .%%%%%%%%&@&*,,,,,         ,,,,,(@&((((((((/       ./%@@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@%   .(##/.   #%%%%%%&@%,,.    .,,,.    .,,@@(((((((,    *//,    %@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@(  ,@&%%%%%%.  ,%%%%%%@@*   .,,,,,,,,,.   (@%((((((.  .(((((,     (@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@&  .@@@@%%%%%&   #%%%%%&@,  ,,,,,,,,,,,,,  ,@((((((/           *@. .@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@&  .@@@@@&%%%&.  #%%%%%%&   ,,,,,,,,,,,,,   %((((((/      ./&@@@@.  @@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@&  .@@@@@@&%%&.  #%%%%%%%   ,,,,,,,,,,,,,   (((((((/  ,(((&@@@@@@.  @@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@*  (@@@@@@@&(   &%%%%%%%   ,,,,,,,,,,,,,   ((((((((   /#@@@@@@@#  *@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@,   &@@@@&   ,&%%%%%%%%   ,,,,,,,,,,,,,   (((((((((    &@@@@&   ,@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@@(  %@@@@(  (%%%%%%%%%%   ,,,,,,,,,,,,*.  (((((((((#,  (@@@@%  (@@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@@@(  %@@@@(  #@&%%%%%%%%       ,,,,,       ((((((((&@*  (@@@@%  (@@@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@@@@@&,   %@@@@(   ,%@&%%%%%%%%/    ,,,,,    *(((((((((@%.   (@@@@%   ,&@@@@@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@@@@/       &@@@@@@@       *&(.         ,,,         ./(,       &@%  &@&       /@@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@@@.     (@(   /&&&   (@(       ,#%%&        .@((/.       (@   &     .&  .@/     .@@@@@@@@@@@@"));
+  Serial.println(F("@@@@@@.   %@@@@@@@(        *@@@&   /&%%%%%%&*,,,,,,,%#((((((%(   &@      &%     .@@@@@%   *@@@@@@@@"));
+  Serial.println(F("@@@@@(  *@@@@@@@@@@@@@@@@@@@@@@.  @@@&%%%%%%&,,,,,,*%((((((@@@@  .@@@@@@&&&@@@@@@@@@@@@@*  &@@@@@@@"));
+  Serial.println(F("@@@@@/  /@@@@@@@@@@@@@@@@@@@@@@. .@@@@@&%%%%&*,,,,,((((((#@@@@@. .@@@@@@#  %@@@@@@@@@@@@/  &@@@@@@@"));
+  Serial.println(F("@@@@@/  /@@@@@@@&&&&&&@@@@@@@@@. .@@@@@@&%%%%%,,,,,#((((&@@@@@@. .@@@@@@#  %@@@@@@@@@@@@/  &@@@@@@@"));
+  Serial.println(F("@@@@@/  /@@@@@@@.    *@@@@@@@@@. .@@@@@@@@%%%&/,,,/((((@@@@@@@@. .@@@@@@#  %@@@@@@@@@@@@/  &@@@@@@@"));
+  Serial.println(F("@@@@@/  /@@%%%@@@@@@@@@@@@@@@@@. .@@%%%&@@@&%%%,,,#((%@@@&%%&@@. .@@@@@@#  %@@@@@@@%%%@@/  &@@@@@@@"));
+  Serial.println(F("@@@@@/  /@@  *@@@@@@@@@@@@@@@@@. .@@,  %@@@@&%%/,*((@@@@@&  /@@. .@@@@@@#  %@@@@@@@   @@/  &@@@@@@@"));
 }

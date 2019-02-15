@@ -31,13 +31,16 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define IFTTT_URL "maker.ifttt.com"
 
 // -----------------------------------------------------
-IFTTTMessageClass::IFTTTMessageClass (void)
+IFTTTMessageClass::IFTTTMessageClass (int updateInterval)
 
 {
     // Reserve buffers for our strings
     PostData.reserve(120);
     PostString.reserve(200);
     DeviceID.reserve(10);
+    
+    UpdateInterval = updateInterval;
+    MillisecondsToRetry = updateInterval;
 }
 
 // -----------------------------------------------------
@@ -101,3 +104,34 @@ bool IFTTTMessageClass::Send (String theMessage)
     }
 }
 
+// -----------------------------------------------------
+// Attempt to send a message to IFTTT and return a flag which, when set, indicates success.
+// When called repeatedly, this method implements retries with a 10 second delay until
+// the message has been sent successfully.
+bool IFTTTMessageClass::SendMessage (char* theMessage)
+{
+  bool returnValue = false;
+
+  MillisecondsToRetry -= UpdateInterval;
+
+  if (MillisecondsToRetry <= 0)
+  {
+    returnValue = Send (theMessage);
+
+    // If this was not successful ...
+    if (returnValue == false)
+    {
+      MillisecondsToRetry = RetryInterval;
+      Serial.println (F("\nConnection to ifttt.com failed. Will try again in 10 seconds."));
+      Serial.println (F("In the mean time, please notify one of the CANARIE staff that you have completed the scavenger hunt\n\n"));
+    }
+    else
+    {
+        // Get ready for the next time we are called (ideally with a new message)
+        MillisecondsToRetry = UpdateInterval;
+    }
+  }  
+  return (returnValue);
+
+}
+   

@@ -79,6 +79,14 @@ void CRSCLED::InitializeFlashList (void)
   FlashListIndex = (BOARD_ID_BYTES*2);
 }
 	
+
+// -----------------------------------------------------------------------------
+// Called every UpdateInterval seconds to update the LED (for flashing)
+void CRSCLED::LEDTickerCallback(CRSCLED* thisLED)
+{
+    thisLED->Update();
+}
+
 // -----------------------------------------------------------------------------
 CRSCLED::CRSCLED(int theLEDPin, float updateInterval)
 { 
@@ -91,6 +99,9 @@ CRSCLED::CRSCLED(int theLEDPin, float updateInterval)
     SetOff();
 
 	InitializeFlashList();
+	
+	// We don't start the flashing yet because we don't have a real 
+	// fingerprint
 }
 	
 // -----------------------------------------------------------------------------
@@ -99,7 +110,9 @@ void CRSCLED::SetFingerprint (unsigned long newPrint)
 { 
 	Fingerprint = newPrint; 
 	InitializeFlashList();
-
+	
+	// Attach the callback that causes the LED to flash
+    LEDFlasher.attach <CRSCLED*> (UpdateInterval/1000.0, LEDTickerCallback, this); 
 }
 	
 // -----------------------------------------------------------------------------
@@ -124,4 +137,18 @@ void CRSCLED::Update (void)
     }     
 }
 
-	
+// -----------------------------------------------------------------------------
+// Force the LED On
+void CRSCLED::SetOn(void)
+{    
+    LEDFlasher.detach();
+    digitalWrite (TheLEDPin, LED_ON); 
+}
+    
+// -----------------------------------------------------------------------------
+// And off
+void CRSCLED::SetOff (void)
+{    
+    LEDFlasher.detach();
+    digitalWrite (TheLEDPin, LED_OFF); 
+}

@@ -27,6 +27,7 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <Ticker.h>
 
 #include "CRSCConfigDefs.h"
 
@@ -38,6 +39,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class CRSCLED
 {
 protected:
+    
+    // Takes care of running the LED flashing function periodically
+    Ticker LEDFlasher;
 	
     // Structure to store the LED flash sequence associated with this board ID
     // Delta list-like structure to describe led flash codes
@@ -72,6 +76,9 @@ protected:
 	// Initialize the flash list using the current fingerprint
 	void InitializeFlashList (void);
 	
+	// Called every UpdateInterval seconds to update the LED (for flashing)
+	static void LEDTickerCallback(CRSCLED* thisLED);
+	
 public:
 	
     CRSCLED (int theLEDPin, float updateInterval);
@@ -83,12 +90,11 @@ public:
     void Update (void);
     
     // Force the LED On
-    void SetOn(void)
-    {    digitalWrite (TheLEDPin, LED_ON); };
+    void SetOn(void);
     
     // And off
-    void SetOff (void)
-    {    digitalWrite (TheLEDPin, LED_OFF); };
+    void SetOff(void);
+    
 };
 
 #endif

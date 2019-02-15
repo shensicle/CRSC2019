@@ -56,43 +56,58 @@ class IFTTTMessageClass
 {
   private:
       
-    // Storage for the ifttt.com API key  
-    char* APIKey;
+     // Storage for the ifttt.com API key  
+     char* APIKey;
     
-    // Client we use to communicate with the outside world
-    WiFiClient TheClient;
+     // Client we use to communicate with the outside world
+     WiFiClient TheClient;
     
-    // String used for the variable parts of the message sent to IFTTT.
-    // Defined here to avoid possible heap fragmentation associated with
-    // string manipulation.
-    String PostData;
+     // String used for the variable parts of the message sent to IFTTT.
+     // Defined here to avoid possible heap fragmentation associated with
+     // string manipulation.
+     String PostData;
     
-    // String used for static parts of message sent to IFTTT
-    String PostString;    
+     // String used for static parts of message sent to IFTTT
+     String PostString;    
     
-    // String used to hold the first label of the JSON packet, typically a
-    // unique identifier for the host
-    String DeviceID;
+     // String used to hold the first label of the JSON packet, typically a
+     // unique identifier for the host
+     String DeviceID;
     
-    // Connect to the ifttt service. Returns true if connection was successful
-    virtual bool Connect (void);
+     // Connect to the ifttt service. Returns true if connection was successful
+     virtual bool Connect (void);
 
+     // Send a message. Return value indicates whether or not message was successfully sent
+     virtual bool Send (String theMessage);
+   
+     // The period, in milliseconds, at which SendMessage will be called in case
+     // a communications failure requires retries.
+     int UpdateInterval;  
+     
+     // In the case of a failure to communicate with ifttt, this variable counts how
+     // long we should wait until we try again.
+     int MillisecondsToRetry;
+     
+     // The time in milliseconds to wait after a failed attempt to communicate with ifttt
+     // before trying again.
+     const int RetryInterval = 10000;
 
 
   public:
-   // Constructor - doens't do much because we have to wait until configuration
-   // is loaded from the personality  before initializing most of this object
-   IFTTTMessageClass (void);
+    // Constructor - doens't do much because we have to wait until configuration
+    // is loaded before initializing most of this object
+    IFTTTMessageClass (int updateInterval);
 
-   // Initialize - pass in API key for IFTTT and a tag to use in the JSON packet,
-   // which is typically a unique identifier for this host. This can't be done in
-   // constructor as we have to wait for personality to be read from EEPROM. Call
-   // this method once before calling Send()
-   void Initialize (const char* theAPIKey, const char* deviceID, const char* deviceType);
+    // Initialize - pass in API key for IFTTT and a tag to use in the JSON packet,
+    // which is typically a unique identifier for this host. This can't be done in
+    // constructor as we have to wait for personality to be read from EEPROM. Call
+    // this method once before calling Send()
+    void Initialize (const char* theAPIKey, const char* deviceID, const char* deviceType);
 
-    // Send a message. Return value indicates whether or not message was successfully sent
-    virtual bool Send (String theMessage);
-    
+    // Attempt to send a message to IFTTT and return a flag which, when set, indicates success.
+    // When called repeatedly, this method implements retries with a 10 second delay until
+    // the message has been sent successfully.
+    bool SendMessage (char* theMessage);
 };
 
 #endif
