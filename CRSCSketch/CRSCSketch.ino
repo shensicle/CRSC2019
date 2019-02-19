@@ -26,9 +26,43 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+ * Probably a little theory is in order, for my future self. This sketch and
+ * the libraries it includes, implement an electronic scavenger hunt for the
+ * 2019 Canadian Research Software Conference (CRSC). The purpose of this hunt is
+ * to encourage the attendees to meet each other.
+ * 
+ * Everyone is given a pre-programmed NodeMCU board and a USB cable. Each NodeMCU
+ * has a unique board ID. The board ID is 4 characters and there are two check
+ * characters on the end, calculated using an algorithm I thought up on a bus.
+ * 
+ * The board ID also maps onto an LED flash code. When powered up, the on-board LED
+ * will start to flash a 4-pulse code made up of combinations of long and short pulses. In this
+ * code, this pattern of pulses is known as a 'fingerprint'. Although
+ * each board has a unique ID, different board IDs can map onto the same fingerprint. For
+ * CRSC 2019 I am assuming 100 boards with 10 different fingerprints. 
+ * 
+ * For the scavenger hunt, a participant must find another board exhibiting the same flash code as
+ * theirs, introduce themselves to the owner of that board, and exchange board IDs. They then type this
+ * new board ID into their board over the serial interface using the 'A' command. 'H' displays an 
+ * online help.
+ * 
+ * Once someone scavenges 5 board IDs from others, their board's LED turns solid and the board sends
+ * and email to us (via ifttt.com). Whoever is first wins.
+ * 
+ * Board configuration such as the board ID, credentials for the local wifi network  and the ifttt API
+ * key are store in EEPROM (actually, on the NodeMCU, EEPROM seems to be emulated in flash). When the board is
+ * booted the first time after flashing, the contents of EEPROM will be invalid. EEPROM can then
+ * be initialized using the 'R' command, which does not appear in the online help. The 'R' command
+ * also requires a security code so that participants playing around can't easily reconfigure their boards.
+ * 
+ * There is also a 'W' command which is intented for production/test use and is similarly
+ * undocumented. The 'W' command sends a test message to ifttt.com, validating both the
+ * ifttt credentials and wifi connectivity.
+*/
+
 // Wifi and IP stack for esp8266 host
 #include <ESP8266WiFi.h>
-//#include <time.h>
 
 // Software timer to control LED flash rate
 #include <Ticker.h>
@@ -73,7 +107,7 @@ void setup()
   // Start serial communication for terminal interface
   Serial.begin(115200); 
 
-  // Seems to minimize garbage characters on reset
+  // Seems to reduce (but not eliminate) garbage characters on reset
   while (! Serial );
 
   // Compromise with Marketing department :)
@@ -107,7 +141,7 @@ void setup()
   }
   else
   {
-      Serial.print (F("\nWell, this is embarassing! Your board seems to be corrupted. Please contact CANARIE staff\n\n"));
+      Serial.print (F("\nWell, this is embarassing! Your board seems to be corrupted. Please contact CANARIE staff - but only the techies\n\n"));
       TheLED.SetOff();
   }
 
@@ -124,7 +158,8 @@ void loop()
     // Check the serial interface for a complete command and, if there is one, execute it
     TheSerialInterface.Update();
 
-    // If we now have all the scavenged board ID's we need ...
+    // If we now have all the scavenged board ID's we need, or if we're in production and a Wifi test
+    // has been requested ...
     if (((TheConfiguration.GetNumScavengedBoardIDs() == SCAVENGED_BOARD_LIST_LEN) && (done == false)) || TheConfiguration.WifiTestRequested())
     {
         // If we are just testing the wifi
@@ -157,6 +192,8 @@ void loop()
           }
           else    // send was successful
           {
+              // If this was just a Wifi test, set done back to false so the hunt can
+              // continue if someone forgets to reboot the board.
               if (TheConfiguration.WifiTestRequested())
               {
                  TheConfiguration.ClearWifiTestMode();
@@ -167,7 +204,7 @@ void loop()
     }
 
 
-    // serialEvent isn't auto-called on 8266, for some reason, so do it ourselves
+    // serialEvent isn't auto-called on 8266 for some reason, so do it ourselves
     serialEvent();
     delay (UPDATE_INTERVAL);
 }
@@ -187,7 +224,10 @@ void serialEvent()
 }
 
 // --------------------------------------------------------------------------------------------------
-void ConnectWifi(char* ssid, char* password)  // Tries to connect to the wireless access point with the credentials provided
+// Tries to connect to the wireless access point with the credentials provided.  The idea is to call
+// this multiple times, until connection is established, so that the board can continue to do other
+// things. Also, because some of the features of the Wifi class seem to require background processing.
+void ConnectWifi(char* ssid, char* password)  
 {  
     // After a timeout, number of millisecons to wait until trying again
     static int millisecondsToRetry = UPDATE_INTERVAL;
@@ -233,21 +273,6 @@ void ConnectWifi(char* ssid, char* password)  // Tries to connect to the wireles
 
 
 // --------------------------------------------------------------------------------------------------------
-/*
-void PrintLogo (void)
-{
-  Serial.print ("\n\n\n");
-  Serial.println(F(" _______/\\\\\\\\\\\\\\\\\\____/\\\\\\\\\\\\\\\\\\_________/\\\\\\\\\\\\\\\\\\\\\\__________/\\\\\\\\\\\\\\\\\\________"));         
-  Serial.println(F("  ____/\\\\\\////////___/\\\\\\///////\\\\\\_____/\\\\\\/////////\\\\\\_____/\\\\\\////////_________"));       
-  Serial.println(F("   __/\\\\\\_____________\\/\\\\\\\\\\\\\\\\\\\\\\/______\\////\\\\\\__________/\\\\\\___________________"));      
-  Serial.println(F("    _\\/\\\\\\_____________\\/\\\\\\//////\\\\\\_________\\////\\\\\\______\\/\\\\\\___________________"));     
-  Serial.println(F("     _\\//\\\\\\____________\\/\\\\\\____\\//\\\\\\___________\\////\\\\\\___\\//\\\\\\__________________"));    
-  Serial.println(F("      __\\///\\\\\\__________\\/\\\\\\_____\\//\\\\\\___/\\\\\\______\\//\\\\\\___\\///\\\\\\________________"));   
-  Serial.println(F("       ____\\////\\\\\\\\\\\\\\\\\\_\\/\\\\\\______\\//\\\\\\_\\///\\\\\\\\\\\\\\\\\\\\\\/______\\////\\\\\\\\\\\\\\\\\\_______"));  
-  Serial.println(F("        _______\\/////////__\\///________\\///____\\///////////___________\\/////////________\n"));                                         
-
-}
-*/
 void PrintLogo(void)
 {
   Serial.print ("\n\n\n");

@@ -32,7 +32,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ----------------------------------------------------------------------
 // Return the one's complement checksum of the configuration structure. This
-// checksum is stored in EEPROM along with the configuration itself.
+// checksum is stored in EEPROM along with the configuration itself. The one's complement
+// stops zeroed-out EEPROM from being taken as valid.
 unsigned char CRSCConfigClass::CalculateChecksum (void)
 {
 	unsigned char* configurationBytes = (unsigned char*)&TheConfiguration;
@@ -83,6 +84,11 @@ unsigned long CRSCConfigClass::CalculateFingerprint (char* theID)
 // Constructor - allocate EEPROM space
 CRSCConfigClass::CRSCConfigClass (void)
 {
+    // Clear the configuration structure. Not strictly necessary as it's
+    // done in Initialize(), but just in case someone changes the code later ...
+    memset (&TheConfiguration, 0, sizeof(TheConfiguration));
+
+    
     // Add 1 for the checksum
     EEPROM.begin (sizeof(TheConfiguration)+1);
     
@@ -310,19 +316,17 @@ bool CRSCConfigClass::HasSameFingerprint (char* idString)
 // it's setup.
 void CRSCConfigClass::Initialize (char* theWifiSSID, char* theWifiPassword, char* theIFTTTKey)
 {
-    memcpy (&TheConfiguration.WifiSSID, theWifiSSID, WIFI_SSID_LEN);
-    memcpy (&TheConfiguration.WifiPassword, theWifiPassword, WIFI_PASSWORD_LEN);
-    memcpy (&TheConfiguration.IFTTTKey, theIFTTTKey, IFTTT_KEY_LEN);
+    // Clear the entire configuration structure
+    memset (&TheConfiguration, 0, sizeof(TheConfiguration));
+    
+    // Load the parameters
+    strncpy (TheConfiguration.WifiSSID, theWifiSSID, WIFI_SSID_LEN);
+    strncpy (TheConfiguration.WifiPassword, theWifiPassword, WIFI_PASSWORD_LEN);
+    strncpy (TheConfiguration.IFTTTKey, theIFTTTKey, IFTTT_KEY_LEN);
 	
-    // Clear the board configuration for now
-    memset (TheConfiguration.MyBoardID, 0, BOARD_ID_BUF_LEN);
-	
-    TheConfiguration.NumScavengedBoards = 0;
-    for (int i = 0; i < SCAVENGED_BOARD_LIST_LEN; i++)
-    {
-        memset (TheConfiguration.ScavengedBoardList[i], 0, BOARD_ID_BUF_LEN);
-    }
-	
+    // BoardID and scavenged board information were zeroed by the memset()
+    // at the top of this method.
+		
     // And save
     Write();
 }
@@ -336,7 +340,7 @@ bool CRSCConfigClass::SetBoardID(char* newID)
 	
     if (IsValidBoardID (newID))
     {
-        memcpy (TheConfiguration.MyBoardID, newID, BOARD_ID_BUF_LEN);
+        strncpy (TheConfiguration.MyBoardID, newID, BOARD_ID_BUF_LEN);
         Write();
         returnValue = true;
     }
