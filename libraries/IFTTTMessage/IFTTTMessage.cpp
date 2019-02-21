@@ -54,7 +54,7 @@ void IFTTTMessageClass::Initialize (const char* theAPIKey, const char* deviceID,
     DeviceID = deviceID;
     PostData   = "";
     
-    PostString =   "POST /trigger/crsc_message/with/key/";
+    PostString =  "POST /trigger/crsc_message/with/key/";
     PostString += theAPIKey;
     PostString += " HTTP/1.1\nHost: ";
     PostString += IFTTT_URL;

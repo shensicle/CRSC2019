@@ -170,3 +170,16 @@ void CRSCCmdParser::GetStringToWhitespace (char* theResult, unsigned maxLen)
      }      
 }
 
+// --------------------------------------------------------------
+// Skips over whitespace until either a non-whitespace character or the end of the buffer is encountered. Return
+// true if there is more data on the command line after the whitespace skip and false otherwise. Typically used
+// to ensure that there are no unexpected parameters.
+bool CRSCCmdParser::IsMoreCommandLine (void)
+{
+    SkipWhitespace ();
+
+    if (StringPtr->length() > CurrPos)
+        return(true);
+    else
+        return(false);
+}

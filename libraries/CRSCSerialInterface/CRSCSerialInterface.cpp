@@ -91,6 +91,8 @@ void CRSCSerialInterface::Update (void)
         {
             // Run
             case 'H':
+                if (Parser.IsMoreCommandLine())
+                    Serial.println ("Warning: Unexepected command line characters encountered.\n");
                 DisplayHelp();
                 break;
         
@@ -98,6 +100,10 @@ void CRSCSerialInterface::Update (void)
             // Add a Board ID
             case 'A':        
                 Parser.GetString(newID, BOARD_ID_BUF_LEN);
+                
+                if (Parser.IsMoreCommandLine())
+                    Serial.println ("Warning: Unexepected command line characters encountered.\n");
+
 		    			
                 // Figure out where the next avaiable space is and add this, along with check digit
                 newIDOkay = TheConfiguration->AddNewScavengedID(newID);
@@ -120,13 +126,24 @@ void CRSCSerialInterface::Update (void)
         
             // Dump the list of scavenged board IDs
             case 'L':        
+                if (Parser.IsMoreCommandLine())
+                {
+                    Serial.println ("Warning: Unexepected command line characters encountered. Type 'H' for help.\n");
+                }
+                
                 // Print scavenged ID list
-                TheConfiguration->PrintScavengedBoardList();	
+                TheConfiguration->PrintScavengedBoardList();
+
                 break;  
         
         
             // Display our own board ID
             case 'G':
+                if (Parser.IsMoreCommandLine())
+                {
+                    Serial.println ("Warning: Unexepected command line characters encountered. Type 'H' for help\n");
+                    DisplayHelp();
+                }
                 Serial.print (F("Your board ID is ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F(" \n"));
                 break;
         

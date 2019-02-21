@@ -172,8 +172,8 @@ void loop()
            // This is real. Scavenger hunt has been completed
            CurrMsg = (char*)DoneMsg;
            
-          // Set LED on as an indication to the user
-          TheLED.SetOn();   
+           // Set LED on as an indication to the user
+           TheLED.SetOn();   
         }
 
        // Connect to Wifi

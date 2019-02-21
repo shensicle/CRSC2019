@@ -72,6 +72,11 @@ public:
     // Return a string of length up to maxLen after skipping over leading whitespace and stopping at
     // trailing whitespace. Return 0x00 if there is no string on the command line.
     void GetStringToWhitespace (char* theResult, unsigned maxLen);
+    
+    // Skips over whitespace until either a non-whitespace character or the end of the buffer is encountered. Return
+    // true if there is more data on the command line after the whitespace skip and false otherwise. Typically used
+    // to ensure that there are no unexpected parameters.
+    bool IsMoreCommandLine (void);
 
 };
 
