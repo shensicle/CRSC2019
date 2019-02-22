@@ -48,9 +48,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * online help.
  * 
  * Once someone scavenges 5 board IDs from others, their board's LED turns solid and the board sends
- * and email to us (via ifttt.com). Whoever is first wins.
+ * an email to us (via ifttt.com). Whoever is first wins.
  * 
- * Board configuration such as the board ID, credentials for the local wifi network  and the ifttt API
+ * Board configuration such as the board ID, credentials for the local wifi network and the ifttt API
  * key are store in EEPROM (actually, on the NodeMCU, EEPROM seems to be emulated in flash). When the board is
  * booted the first time after flashing, the contents of EEPROM will be invalid. EEPROM can then
  * be initialized using the 'R' command, which does not appear in the online help. The 'R' command

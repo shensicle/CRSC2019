@@ -85,6 +85,11 @@ class CRSCConfigClass
   	    // Return our fingerprint
   	    unsigned long GetFingerprint (void)
   	       { return (Fingerprint); }
+  	       
+  	    // Return the current fingerprint in the string provided - used for diagnostics only.
+  	    // String returned consists of 4 characters that are either 0 or 1, plus the
+  	    // terminator.
+        void GetFingerprint (char* thePrint);
 		
   	    // Return a string containing the specified scavenged board ID, including
   	    // the check digits. Valid indices go from 0 to GetNumScavengedBoardIDs() - 1.

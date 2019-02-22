@@ -32,6 +32,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Size of buffer for incoming serial characters
 #define BUF_SIZE 80
 
+// The code to use to enable host configuration commands - minimal security
+const char SecurityCode[] = "XNY556";
+
 	
 // --------------------------------------------------------------------------- 
 // Constructor
@@ -147,6 +150,37 @@ void CRSCSerialInterface::Update (void)
                 Serial.print (F("Your board ID is ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F(" \n"));
                 break;
         
+                
+            // Dump the board's current configuration. Not documented in online help as it's intended to be used only by CANARIE staff.
+            // Requires security code.
+        case 'D':
+               // Not really getting a board ID, but buffer was there so let's reuse it.
+                Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
+                      				 
+                if (strcmp(newID, SecurityCode) == 0)
+                {
+                    Serial.println (F("\n\nDump configuration:\n"));
+                    Serial.print (F("Wifi SSID: ")); Serial.println (TheConfiguration->GetWifiSSID());                    
+                    Serial.print (F("Wifi Password: ")); Serial.println (TheConfiguration->GetWifiPassword());
+                    Serial.print (F("IFTTT Key: ")); Serial.println (TheConfiguration->GetIFTTTKey());
+                    Serial.print (F("Board ID: ")); Serial.println (TheConfiguration->GetBoardID());
+                    Serial.print (F("Scavenged boards: ")); Serial.println (TheConfiguration->GetNumScavengedBoardIDs());
+                    
+                    Serial.print (F("Fingerprint: ")); 
+                    char tempPrint[5];
+                    TheConfiguration->GetFingerprint(tempPrint);
+                    Serial.println (tempPrint);
+                   
+                    Serial.print (F("\n\n"));
+                    
+                }
+                else
+                {
+                    okay = false;
+                }
+            break;
+            
+            
             // Set our board ID. This can only be done when the Board ID in EEPROM has been cleared - ie. 000000. Meant to be used by CANARIE
             // staff only so doesn't appear in help.
             case 'I':
@@ -180,7 +214,7 @@ void CRSCSerialInterface::Update (void)
                 // Not really getting a board ID, but buffer was there so let's reuse it.
                 Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
                       				 
-                if (strcmp(newID, "XNY556") == 0)
+                if (strcmp(newID, SecurityCode) == 0)
                 {
                     Serial.println (F("Resetting EEPROM"));
                     TheConfiguration->Initialize(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
@@ -213,7 +247,7 @@ void CRSCSerialInterface::Update (void)
                 // Not really getting a board ID, but buffer was there so let's reuse it.
                 Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
                       				 
-                if (strcmp(newID, "XNY556") == 0)
+                if (strcmp(newID, SecurityCode) == 0)
                 {
                     TheConfiguration->RequestWifiTest();
                 }

@@ -346,3 +346,24 @@ bool CRSCConfigClass::SetBoardID(char* newID)
     }
     return (returnValue);
 }
+
+// ------------------------------------------------------------------------------
+// Return the current fingerprint in the string provided - used for diagnostics only.
+// String returned consists of 4 characters that are either 0 or 1, plus the
+// terminator.
+void CRSCConfigClass::GetFingerprint (char* thePrint)
+{
+    unsigned long temp = Fingerprint;
+    
+    for (int i = 0; i < 4; i++)
+    {
+        if (temp & 0x01)
+            thePrint[i] = '1';
+        else
+            thePrint[i] = '0';
+       
+        temp = temp >> 1;
+    }
+    thePrint[4] = 0x00;
+}
+		
