@@ -122,7 +122,8 @@ char CRSCCmdParser::GetChar (void)
 
 // --------------------------------------------------------------
 // Return a string of length up to maxLen after skipping over whitespace. Return 0x00 if there is
-// no string on the command line.
+// no string on the command line. Note that this method scans to the end of the command line
+// or maxLen, whichever comes first, and will 
 void CRSCCmdParser::GetString (char* theResult, unsigned maxLen)
 {
     SkipWhitespace ();

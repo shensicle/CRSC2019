@@ -341,6 +341,12 @@ bool CRSCConfigClass::SetBoardID(char* newID)
     if (IsValidBoardID (newID))
     {
         strncpy (TheConfiguration.MyBoardID, newID, BOARD_ID_BUF_LEN);
+        
+        // If we're setting the board ID, should erase any existing scavenged IDs,
+        // I think.
+        TheConfiguration.NumScavengedBoards = 0;
+        
+        // Save changes to EEPROM
         Write();
         returnValue = true;
     }

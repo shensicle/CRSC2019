@@ -150,10 +150,11 @@ void CRSCSerialInterface::Update (void)
                 Serial.print (F("Your board ID is ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F(" \n"));
                 break;
         
+            // These commands are for production and not announced to users    
                 
             // Dump the board's current configuration. Not documented in online help as it's intended to be used only by CANARIE staff.
             // Requires security code.
-        case 'D':
+            case 'D':
                // Not really getting a board ID, but buffer was there so let's reuse it.
                 Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
                       				 
