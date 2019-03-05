@@ -77,6 +77,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // -------------------------------------------------------
 
+// Remember to update this just before the commit
+#define FIRMWARE_VERSION "1.0"
+
 // How often to run out main loop (milliseconds)
 #define UPDATE_INTERVAL    50
 
@@ -120,7 +123,7 @@ void setup()
   // If the configuration checksum test passed and all stored board IDs are valid ...
   if (okay == true)
   {
-    Serial.print (F("\nWelcome to CANARIE's CRSC Scavenger Hunt\n\n"));
+    Serial.print (F("\nWelcome to CANARIE's CRSC Scavenger Hunt (Firmware Version "));Serial.print (FIRMWARE_VERSION); Serial.println(")\n\n");
 
     // We can now initialize fields to be sent to IFTTT that were in the personality
     IFTTTSender.Initialize (TheConfiguration.GetIFTTTKey(), TheConfiguration.GetBoardID(), "CRSCGadget"); 
