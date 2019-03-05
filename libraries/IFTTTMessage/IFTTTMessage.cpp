@@ -127,6 +127,7 @@ bool IFTTTMessageClass::SendMessage (char* theMessage)
     }
     else
     {
+        Serial.println (F("\nMessage sent to ifttt.com\n"));
         // Get ready for the next time we are called (ideally with a new message)
         MillisecondsToRetry = UpdateInterval;
     }
