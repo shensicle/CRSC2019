@@ -78,7 +78,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // -------------------------------------------------------
 
 // Remember to update this just before the commit
-#define FIRMWARE_VERSION "1.0"
+#define FIRMWARE_VERSION "1.0+"
 
 // How often to run out main loop (milliseconds)
 #define UPDATE_INTERVAL    50
@@ -132,6 +132,7 @@ void setup()
     if (memcmp (TheConfiguration.GetBoardID(), UninitializedID, BOARD_ID_LEN) == 0) 
     {
         Serial.print(F("*** I'm so sorry. It seems that your board ID is missing. Please get help from CANARIE staff - but only the techies\n\n"));
+        TheLED.SetOff();
     }
     else
     {
