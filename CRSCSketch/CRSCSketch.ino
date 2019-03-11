@@ -136,12 +136,14 @@ void setup()
     }
     else
     {
+         
+        // Tell the LED object about our fingerprint so it can flash accordingly
+        TheLED.SetFingerprint (TheConfiguration.GetFingerprint());
+        
         // Tell the user what they can do
         TheSerialInterface.DisplayHelp();
     }
-    
-    // Tell the LED object about our fingerprint so it can flash accordingly
-    TheLED.SetFingerprint (TheConfiguration.GetFingerprint());
+ 
   }
   else
   {
