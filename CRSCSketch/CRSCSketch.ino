@@ -59,9 +59,12 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * There is also a 'W' command which is intented for production/test use and is similarly
  * undocumented. The 'W' command sends a test message to ifttt.com, validating both the
  * ifttt credentials and wifi connectivity.
+ * 
+ * This code is sort of based on a controller-model-view architecture. The model is the configuration. The
+ * view is the serial interface and I also used the view as the controller, as this is such a small project. Don't judge!
 */
 
-// Wifi and IP stack for esp8266 host
+// Wifi and IP stack for esp8266 
 #include <ESP8266WiFi.h>
 
 // Software timer to control LED flash rate
@@ -139,6 +142,9 @@ void setup()
          
         // Tell the LED object about our fingerprint so it can flash accordingly
         TheLED.SetFingerprint (TheConfiguration.GetFingerprint());
+
+        // As a courtesy, display board ID on startup
+        Serial.print(F("Your board ID is ")); Serial.print(TheConfiguration.GetBoardID());Serial.println(F("\n\n"));
         
         // Tell the user what they can do
         TheSerialInterface.DisplayHelp();
@@ -238,7 +244,8 @@ void ConnectWifi(char* ssid, char* password)
     // After a timeout, number of millisecons to wait until trying again
     static int millisecondsToRetry = UPDATE_INTERVAL;
     
-    byte attempts = 0;   // Counter for the number of attempts to connect to wireless AP
+    byte attempts = 0;   // Counter for the number of attempts to connect to wireless AP before giving up 
+                         // temporarily
 
     millisecondsToRetry -= UPDATE_INTERVAL;
 
@@ -270,7 +277,7 @@ void ConnectWifi(char* ssid, char* password)
       {
          Serial.println(F("\nWiFi connected ...\n"));
       }
-      else  // Unable to connect
+      else  // Unable to connect. Leave ourselves in a good state.
       {
          WiFi.disconnect();
       }
