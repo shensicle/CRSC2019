@@ -172,6 +172,7 @@ void CRSCSerialInterface::Update (void)
             case 0x00:
 
                 // Just a new line. Let it go and don't bother user with invalid command error message.
+                Serial.println();
                 break;
       					 
             default:
