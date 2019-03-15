@@ -95,44 +95,20 @@ void CRSCSerialInterface::Update (void)
             // Run
             case 'H':
                 if (Parser.IsMoreCommandLine())
-                    Serial.println ("Warning: Unexepected command line characters encountered.\n");
+                    Serial.println (F("Warning: Unexepected command line characters encountered.\n"));
                 DisplayHelp();
                 break;
         
        
             // Add a Board ID
             case 'A':        
-                Parser.GetString(newID, BOARD_ID_BUF_LEN);
-                
-                if (Parser.IsMoreCommandLine())
-                    Serial.println ("Warning: Unexepected command line characters encountered.\n");
-
-		    			
-                // Figure out where the next avaiable space is and add this, along with check digit
-                newIDOkay = TheConfiguration->AddNewScavengedID(newID);
-                if (newIDOkay)
-                {
-                    Serial.print (F("Addition successful - you now have "));
-                    Serial.print (TheConfiguration->GetNumScavengedBoardIDs());
-                    Serial.println (F(" scavenged ID(s)\n"));
-                }
-                else
-                {
-                    Serial.println(F("Oh no!! Scavenged board ID could not be added"));
-                    Serial.println(F("This could be because:"));
-                    Serial.println(F(" - It's not a valid board ID - there are check bytes :)"));
-                    Serial.println(F(" - It's from a board that doesn't match your flash code"));
-                    Serial.println(F(" - It's the ID of your board"));
-                    Serial.println(F(" - This board has already been added to your scavenged list\n"));
-                }
+                ProcessACommand();
                 break;  
         
             // Dump the list of scavenged board IDs
             case 'L':        
                 if (Parser.IsMoreCommandLine())
-                {
-                    Serial.println ("Warning: Unexepected command line characters encountered. Type 'H' for help.\n");
-                }
+                    Serial.println (F("Warning: Unexepected command line characters encountered. Type 'H' for help.\n"));
                 
                 // Print scavenged ID list
                 TheConfiguration->PrintScavengedBoardList();
@@ -144,101 +120,36 @@ void CRSCSerialInterface::Update (void)
             case 'G':
                 if (Parser.IsMoreCommandLine())
                 {
-                    Serial.println ("Warning: Unexepected command line characters encountered. Type 'H' for help\n");
+                    Serial.println (F("Warning: Unexepected command line characters encountered. Type 'H' for help\n"));
                     DisplayHelp();
                 }
                 Serial.print (F("Your board ID is ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F(" \n"));
                 break;
         
-            // These commands are for production and not announced to users    
+            // *** These commands are for production and not announced to users ***    
                 
             // Dump the board's current configuration. Not documented in online help as it's intended to be used only by CANARIE staff.
             // Requires security code.
             case 'D':
-               // Not really getting a board ID, but buffer was there so let's reuse it.
-                Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
-                      				 
-                if (strcmp(newID, SecurityCode) == 0)
-                {
-                    Serial.println (F("\n\nDump configuration:\n"));
-                    Serial.print (F("Wifi SSID: ")); Serial.println (TheConfiguration->GetWifiSSID());                    
-                    Serial.print (F("Wifi Password: ")); Serial.println (TheConfiguration->GetWifiPassword());
-                    Serial.print (F("IFTTT Key: ")); Serial.println (TheConfiguration->GetIFTTTKey());
-                    Serial.print (F("Board ID: ")); Serial.println (TheConfiguration->GetBoardID());
-                    Serial.print (F("Scavenged boards: ")); Serial.println (TheConfiguration->GetNumScavengedBoardIDs());
-                    
-                    Serial.print (F("Fingerprint: ")); 
-                    char tempPrint[5];
-                    TheConfiguration->GetFingerprint(tempPrint);
-                    Serial.println (tempPrint);
-                   
-                    Serial.print (F("\n\n"));
-                    
-                }
-                else
-                {
-                    okay = false;
-                }
-            break;
+                
+               ProcessDCommand();
+                
+               break;
             
             
             // Set our board ID. This can only be done when the Board ID in EEPROM has been cleared - ie. 000000. Meant to be used by CANARIE
             // staff only so doesn't appear in help.
             case 'I':
-                if (memcmp (TheConfiguration->GetBoardID(), UninitializedID, BOARD_ID_LEN) == 0)
-                {
-                    Parser.GetString(newID, BOARD_ID_BUF_LEN);
-                    okay = TheConfiguration->SetBoardID(newID);
-                    
-                    if (okay)
-                    {
-                        Serial.print(F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
-                        Serial.println (F("Rebooting...There's a bug where reboots fail first time after flashing board"));
-                        Serial.println (F("If board doesn't reboot, push reset button\n"));
-                        ESP.restart();
-                    }
-                    else
-                    {
-                        Serial.println(F("Invalid board ID - try again with the I command\n"));
-                    }
-                }
-                else
-                {
-                    okay = false;
-                }
+                
+                ProcessICommand();   // Warning - this command reboots host
+                
                 break;
       					
             // Reset EEPROM - Intended to be used by CANARIE during production/testing and so does not appear in help. You would typically
             // use this command followed by the I command to reload the board ID
             case 'R':
       				
-                // Not really getting a board ID, but buffer was there so let's reuse it.
-                Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
-                      				 
-                if (strcmp(newID, SecurityCode) == 0)
-                {
-                    Serial.println (F("Resetting EEPROM"));
-                    TheConfiguration->Initialize(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
-                    
-                    // Now, if there's a board ID on the command line as well, set it to be our board ID
-                    Parser.GetString (newID, BOARD_ID_BUF_LEN);
-                    if (TheConfiguration->SetBoardID(newID))
-                    {
-                        Serial.print (F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
-                        Serial.println (F("Rebooting...There's a bug where reboots fail first time after flashing board"));
-                        Serial.println (F("If board doesn't reboot, push reset button\n"));
-                        ESP.restart();
-                    }
-                    else
-                    {
-                        Serial.println (F("\nUse the 'I' command to set a new board ID"));
-                    }
-
-                }
-                else
-                {
-                    Serial.println (F("\nEEPROM reset failed - invalid security code"));
-                }
+                ProcessRCommand();  // Warning - this command reboots host
                 break;
                 
             // This is for production purposes only. If you type the "W" command and the security code,
@@ -256,20 +167,146 @@ void CRSCSerialInterface::Update (void)
                 {
                     Serial.println (F("\nWifi test cancelled - invalid security code\n"));
                 }
-            break;
+                break;
+            
+            case 0x00:
+
+                // Just a new line. Let it go and don't bother user with invalid command error message.
+                break;
       					 
             default:
-                okay = false;
+                Serial.println (F("Invalid command\n"));
                 break;
 
         }
     
         CommandComplete = false;
         InputString = ""; 
-  
-        // Turn status to a more human friendly value
-        if (okay == false)
-            Serial.println (F("Invalid command\n"));
         
     }  
+}
+
+// -----------------------------------------------------------------------------
+void CRSCSerialInterface::ProcessACommand (void)
+{          
+    char newID[BOARD_ID_BUF_LEN];
+
+    Parser.GetStringToWhitespace(newID, BOARD_ID_BUF_LEN);
+                
+    if (Parser.IsMoreCommandLine())
+       Serial.println (F("Warning: Unexepected command line characters encountered.\n"));
+
+		    			
+    // Figure out where the next avaiable space is and add this, along with check digit
+    bool newIDOkay = TheConfiguration->AddNewScavengedID(newID);
+    if (newIDOkay)
+    {
+        Serial.print (F("Addition successful - you now have "));
+        Serial.print (TheConfiguration->GetNumScavengedBoardIDs());
+        Serial.println (F(" scavenged ID(s)\n"));
+    }
+    else
+    {
+        Serial.println(F("Oh no!! Scavenged board ID could not be added"));
+        Serial.println(F("This could be because:"));
+        Serial.println(F(" - It's not a valid board ID - there are check bytes :)"));
+        Serial.println(F(" - It's from a board that doesn't match your flash code"));
+        Serial.println(F(" - It's the ID of your board"));
+        Serial.println(F(" - This board has already been added to your scavenged list\n"));
+    }
+ 
+}
+
+// -----------------------------------------------------------------------------
+void CRSCSerialInterface::ProcessDCommand (void) 
+{
+          
+    char buf[BOARD_ID_BUF_LEN];
+
+    Parser.GetStringToWhitespace(buf, BOARD_ID_BUF_LEN);
+    
+    if (strcmp(buf, SecurityCode) == 0)
+    {
+        Serial.println (F("\n\nDump configuration:\n"));
+        Serial.print (F("Wifi SSID: ")); Serial.println (TheConfiguration->GetWifiSSID());                    
+        Serial.print (F("Wifi Password: ")); Serial.println (TheConfiguration->GetWifiPassword());
+        Serial.print (F("IFTTT Key: ")); Serial.println (TheConfiguration->GetIFTTTKey());
+        Serial.print (F("Board ID: ")); Serial.println (TheConfiguration->GetBoardID());
+        Serial.print (F("Scavenged boards: ")); Serial.println (TheConfiguration->GetNumScavengedBoardIDs());
+                    
+        Serial.print (F("Fingerprint: ")); 
+
+        TheConfiguration->GetFingerprint(buf);
+        Serial.println (buf);
+                   
+        Serial.print (F("\n\n"));    
+    }
+    else
+    {
+        Serial.println (F("Command cancelled - invalid security code\n"));
+    }
+}
+
+// -----------------------------------------------------------------------------
+void CRSCSerialInterface::ProcessICommand (void) 
+{
+    char buf[BOARD_ID_BUF_LEN];
+
+    if (memcmp (TheConfiguration->GetBoardID(), UninitializedID, BOARD_ID_LEN) == 0)
+    {
+        Parser.GetStringToWhitespace(buf, BOARD_ID_BUF_LEN);
+        bool okay = TheConfiguration->SetBoardID(buf);
+                    
+        if (okay)
+        {
+             Serial.print(F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
+             Serial.println (F("Rebooting...There's a bug where reboots fail first time after flashing board"));
+             Serial.println (F("If board doesn't reboot, push reset button\n"));
+             ESP.restart();
+        }
+        else
+        {
+             Serial.println(F("\nCommand cancelled - invalid board ID\n"));
+        }
+    }
+    else
+    {
+        Serial.println(F("\nCommand cancelled - board ID already set\n"));
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+void CRSCSerialInterface::ProcessRCommand (void) 
+{
+    
+    char buf[BOARD_ID_BUF_LEN];
+
+    Parser.GetStringToWhitespace(buf, BOARD_ID_BUF_LEN);
+                      				 
+    if (strcmp(buf, SecurityCode) == 0)
+    {
+         Serial.println (F("Resetting EEPROM"));
+         TheConfiguration->Initialize(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASSWORD, DEFAULT_IFTTT_KEY);
+                    
+         // Now, if there's a board ID on the command line as well, set it to be our board ID
+         Parser.GetString (buf, BOARD_ID_BUF_LEN);
+         if (TheConfiguration->SetBoardID(buf))
+         {
+              Serial.print (F("\nYour board ID is now ")); Serial.print(TheConfiguration->GetBoardID()); Serial.println(F("\n"));
+              Serial.println (F("Rebooting...There's a bug where reboots fail first time after flashing board"));
+              Serial.println (F("If board doesn't reboot, push reset button\n"));
+              ESP.restart();
+         }
+         else
+         {
+              Serial.println (F("\nNo new board ID specified - use the 'I' command to set a new board ID"));
+         }
+
+    }
+    else
+    {
+        Serial.println (F("\nEEPROM reset failed - invalid security code"));
+    }
+   
 }

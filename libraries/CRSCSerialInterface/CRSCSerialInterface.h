@@ -50,6 +50,12 @@ protected:
     // Pointer to the configuration object
     CRSCConfigClass* TheConfiguration;
     
+    // Handlers for some of the longer commands - to keep Update() readable
+    void ProcessACommand(void);
+    void ProcessDCommand(void);
+    void ProcessICommand(void);
+    void ProcessRCommand(void);
+    
 public:
     // Constructor
     CRSCSerialInterface (CRSCConfigClass* theConfiguration);
