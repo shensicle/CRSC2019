@@ -81,7 +81,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // -------------------------------------------------------
 
 // Remember to update this just before the commit
-#define FIRMWARE_VERSION "1.0+"
+#define FIRMWARE_VERSION "1.1"
 
 // How often to run out main loop (milliseconds)
 #define UPDATE_INTERVAL    50
