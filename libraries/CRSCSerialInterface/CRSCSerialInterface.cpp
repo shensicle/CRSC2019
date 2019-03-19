@@ -44,7 +44,8 @@ CRSCSerialInterface::CRSCSerialInterface (CRSCConfigClass* theConfiguration)
     InputString = ""; 
     TheConfiguration = theConfiguration;
 
-    CommandComplete = false; 
+    CommandComplete = false;
+    
     // Reserve space for incoming commands to minimize heap fragmentation.
     InputString.reserve(BUF_SIZE);
 }
@@ -78,11 +79,6 @@ void CRSCSerialInterface::Update (void)
 	
     bool okay = true;
 	
-    // A flag which, when set, indicatest that a board ID passed into the A command
-    // was accepted. Compiler doesn't like it when you create local variables inside a
-    // switch statement, so here it is.
-    bool newIDOkay;
-	
     if (CommandComplete == true)
     {
         Parser.Reset();
@@ -112,7 +108,6 @@ void CRSCSerialInterface::Update (void)
                 
                 // Print scavenged ID list
                 TheConfiguration->PrintScavengedBoardList();
-
                 break;  
         
         
@@ -132,8 +127,7 @@ void CRSCSerialInterface::Update (void)
             // Requires security code.
             case 'D':
                 
-               ProcessDCommand();
-                
+               ProcessDCommand();  
                break;
             
             
@@ -142,7 +136,6 @@ void CRSCSerialInterface::Update (void)
             case 'I':
                 
                 ProcessICommand();   // Warning - this command reboots host
-                
                 break;
       					
             // Reset EEPROM - Intended to be used by CANARIE during production/testing and so does not appear in help. You would typically
@@ -169,6 +162,7 @@ void CRSCSerialInterface::Update (void)
                 }
                 break;
             
+                
             case 0x00:
 
                 // Just a new line. Let it go and don't bother user with invalid command error message.
