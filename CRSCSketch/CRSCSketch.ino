@@ -139,16 +139,27 @@ void setup()
     }
     else
     {
-         
-        // Tell the LED object about our fingerprint so it can flash accordingly
-        TheLED.SetFingerprint (TheConfiguration.GetFingerprint());
+           // If we get this far, then the configuration is valid. Check to see if the scavenger hunt has been completed. If it has been, just
+           // print a friendly message. To avoid spamming ifttt.com on every power up, we will also disable the ability to send to ifttt in loop() 
+           // under this condition.
+           if (TheConfiguration.GetHuntComplete() == true)
+           {
+              PrintClosingMessage();
+              TheLED.SetOn();   
+           }
+           else
+           {
+              // The game is still afoot
+              // Tell the LED object about our fingerprint so it can flash accordingly
+              TheLED.SetFingerprint (TheConfiguration.GetFingerprint());
 
-        // As a courtesy, display board ID on startup
-        Serial.print(F("Your board ID is ")); Serial.print(TheConfiguration.GetBoardID());Serial.println(F("\n\n"));
+              // As a courtesy, display board ID on startup
+              Serial.print(F("Your board ID is ")); Serial.print(TheConfiguration.GetBoardID());Serial.println(F("\n\n"));
         
-        // Tell the user what they can do
-        TheSerialInterface.DisplayHelp();
-    }
+              // Tell the user what they can do
+              TheSerialInterface.DisplayHelp();
+           }
+     }
  
   }
   else
@@ -157,13 +168,6 @@ void setup()
       TheLED.SetOff();
   }
 
-  // If we get this far, then the configuration is valid. Check to see if the scavenger hunt has been completed. If it has been, just
-  // print a friendly message and halt. We do this so the board won't try and contact ifttt.com every time it is powered up.
-  if (TheConfiguration.GetHuntComplete())
-  {
-    PrintClosingMessage();
-    TheLED.SetOn();   
-  }
 
   Serial.flush();
 }
