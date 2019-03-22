@@ -62,9 +62,9 @@ typedef struct
 }config_t;
 
 // Default values for configuration items
-#define DEFAULT_WIFI_SSID "mothership"
-#define DEFAULT_WIFI_PASSWORD "M0thershipacc3ss"
-#define DEFAULT_IFTTT_KEY "duXM_QERQOiy8v8dzs-e-b"
+#define DEFAULT_WIFI_SSID "<SSID Here>"
+#define DEFAULT_WIFI_PASSWORD "<Wifi password here>"
+#define DEFAULT_IFTTT_KEY "<API key here>"
 
 
 #endif  
