@@ -81,7 +81,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // -------------------------------------------------------
 
 // Remember to update this just before the commit
-#define FIRMWARE_VERSION "1.1"
+#define FIRMWARE_VERSION "1.2"
 
 // How often to run out main loop (milliseconds)
 #define UPDATE_INTERVAL    50
@@ -157,6 +157,14 @@ void setup()
       TheLED.SetOff();
   }
 
+  // If we get this far, then the configuration is valid. Check to see if the scavenger hunt has been completed. If it has been, just
+  // print a friendly message and halt. We do this so the board won't try and contact ifttt.com every time it is powered up.
+  if (TheConfiguration.GetHuntComplete())
+  {
+    PrintClosingMessage();
+    TheLED.SetOn();   
+  }
+
   Serial.flush();
 }
 
@@ -172,6 +180,7 @@ void loop()
 
     // If we now have all the scavenged board ID's we need, or if we're in production and a Wifi test
     // has been requested ...
+    done |= TheConfiguration.GetHuntComplete();
     if (((TheConfiguration.GetNumScavengedBoardIDs() == SCAVENGED_BOARD_LIST_LEN) && (done == false)) || TheConfiguration.WifiTestRequested())
     {
         // If we are just testing the wifi
@@ -210,6 +219,13 @@ void loop()
               {
                  TheConfiguration.ClearWifiTestMode();
                  done = false;
+              }
+              else
+              {
+                // It't the real thing. Flag that we have sent a message to ifttt.com so it
+                // doesn't happen again when the board is power-cycled
+                TheConfiguration.SetHuntComplete();
+                PrintClosingMessage();
               }
           }
        }        
@@ -332,4 +348,19 @@ void PrintLogo(void)
   Serial.println(F("@@@@@/  /@@@@@@@.    *@@@@@@@@@. .@@@@@@@@%%%&/,,,/((((@@@@@@@@. .@@@@@@#  %@@@@@@@@@@@@/  &@@@@@@@"));
   Serial.println(F("@@@@@/  /@@%%%@@@@@@@@@@@@@@@@@. .@@%%%&@@@&%%%,,,#((%@@@&%%&@@. .@@@@@@#  %@@@@@@@%%%@@/  &@@@@@@@"));
   Serial.println(F("@@@@@/  /@@  *@@@@@@@@@@@@@@@@@. .@@,  %@@@@&%%/,*((@@@@@&  /@@. .@@@@@@#  %@@@@@@@   @@/  &@@@@@@@"));
+}
+
+// --------------------------------------------------------------------------------------------------------
+void PrintClosingMessage(void)
+{
+  Serial.println ("\n\n");
+
+  Serial.println ("Congratulations!!! You have completed the CRSC2019 Scavenger Hunt!\n");
+  Serial.println ("This board has now been disabled to prevent spamming the email service on power up\n");
+
+  Serial.println ("We encourage you to reuse this board for something cool - and let us know about it\n");
+  Serial.println ("There's additional information about programming these devices at http://researchsoftware.ca/NodeMCU\n");
+
+  Serial.println ("and the source code used for this event is available at https://github.com/shensicle/CRSC2019\n\n"); 
+
 }

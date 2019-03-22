@@ -57,13 +57,14 @@ typedef struct
       char MyBoardID[BOARD_ID_BUF_LEN];   
       unsigned char NumScavengedBoards;
       char ScavengedBoardList[SCAVENGED_BOARD_LIST_LEN][BOARD_ID_BUF_LEN];
+      bool HuntComplete;       // this board has a full ScavengedBoardList and results have been sent to ifttt.com
 
 }config_t;
 
 // Default values for configuration items
-#define DEFAULT_WIFI_SSID "SSID goes here"
-#define DEFAULT_WIFI_PASSWORD "Wifi password goes here"
-#define DEFAULT_IFTTT_KEY "ifttt key goes here"
+#define DEFAULT_WIFI_SSID "mothership"
+#define DEFAULT_WIFI_PASSWORD "M0thershipacc3ss"
+#define DEFAULT_IFTTT_KEY "duXM_QERQOiy8v8dzs-e-b"
 
 
 #endif  

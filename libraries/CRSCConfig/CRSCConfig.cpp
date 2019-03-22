@@ -324,9 +324,9 @@ void CRSCConfigClass::Initialize (char* theWifiSSID, char* theWifiPassword, char
     strncpy (TheConfiguration.WifiPassword, theWifiPassword, WIFI_PASSWORD_LEN);
     strncpy (TheConfiguration.IFTTTKey, theIFTTTKey, IFTTT_KEY_LEN);
 	
-    // BoardID and scavenged board information were zeroed by the memset()
+    // BoardID, scavenged board information and ScavengeComplete were zeroed by the memset()
     // at the top of this method.
-		
+    
     // And save
     Write();
 }

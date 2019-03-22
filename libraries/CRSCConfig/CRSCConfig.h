@@ -148,6 +148,16 @@ class CRSCConfigClass
         // Clear the wifi test flag. Should be called after Wifi test has started.
         void ClearWifiTestMode (void)
         { WifiTestModeActive = false; };
+        
+        // Set the flag that indicates the hunt is over. Stops board from contacting ifttt.com 
+        // every time it is powered up.
+        void SetHuntComplete(void)
+        { TheConfiguration.HuntComplete = true; Write(); }
+        
+        // Return a flag which, when set, indicates that the hunt is over because all
+        // required board IDs have been entered and ifttt.com has been notified
+        bool GetHuntComplete (void)
+        { return (TheConfiguration.HuntComplete); }
 };
 
 
